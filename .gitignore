@@ -2,3 +2,5 @@ zig-*
 
 deps/include/*/**
 deps/lib/*/**
+
+build/
