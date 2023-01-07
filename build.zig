@@ -17,21 +17,21 @@ pub fn build(b: *std.build.Builder) void {
     defer csources.deinit();
 
     std.debug.print("Compiling source files: {s}\n", .{csources.items});
-    exe.addCSourceFiles(csources.items, &.{});
+    exe.addCSourceFiles(csources.items, &.{ "-Wall", "-Wextra", "-pedantic", "-g" });
 
     includeLibrary(exe, "SDL2");
     b.installBinFile(libs ++ "SDL2/SDL2.dll", "SDL2.dll");
 
-    // includeLibrary(exe, "SDL2_ttf");
-    // b.installBinFile(libs ++ "SDL2_ttf/SDL2_ttf.dll", "SDL2_ttf.dll");
+    includeLibrary(exe, "SDL2_ttf");
+    b.installBinFile(libs ++ "SDL2_ttf/SDL2_ttf.dll", "SDL2_ttf.dll");
 
     // Can't statically link unless I compile with zig cc/c++, because
     // for some reason you can't mix static libs from different compilers >:(
     //exe.addIncludePath(includes ++ "freetype");
     //exe.addObjectFile(libs ++ "freetype/freetype.lib");
 
-    includeLibrary(exe, "freetype");
-    b.installBinFile(libs ++ "freetype/freetype.dll", "freetype.dll");
+    //includeLibrary(exe, "freetype");
+    //b.installBinFile(libs ++ "freetype/freetype.dll", "freetype.dll");
 
     b.installBinFile("deps/Hack Regular Nerd Font Complete.ttf", "Hack Regular Nerd Font Complete.ttf");
 
