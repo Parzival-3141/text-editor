@@ -5,5 +5,6 @@
 
 void CheckSDLError(int code);
 void* CheckSDLPtr(void* ptr);
+void* CheckPtr(void* ptr, const char* msg_format, ...);
 
 #endif // SDL_UTILS_H_

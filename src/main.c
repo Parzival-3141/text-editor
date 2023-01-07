@@ -1,13 +1,14 @@
 #include <stdbool.h>
 #include <stdio.h>
+#include <string.h>
 
 #define SDL_MAIN_HANDLED
 #include <SDL.h>
 #include <SDL_ttf.h>
 
 #include "sdl_utils.h"
+#include "editor.h"
 
-#include <string.h>
 
 #define SDL_COLOR_WHITE (SDL_Color){.r = 255, .g = 255, .b = 255, .a = 255}
 
@@ -16,18 +17,16 @@
 
 #define TEST_TXT "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
 
+
+Editor editor = {0};
+
 // Caller must free the returned string
 char* concat_str(char* s1, char* s2) {
 	int s1_size = strlen(s1);
 	int s2_size = strlen(s2);
 
 	int new_size = s1_size + s2_size;
-	char* new_str = malloc(new_size);
-
-	if(new_str == 0) {
-		fprintf(stderr, "ERROR: concat_str was unable to allocate memory!\n");
-		exit(1);
-	}
+	char* new_str = CheckPtr(malloc(new_size), "ERROR: concat_str was unable to allocate memory!\n");
 
 	strncpy(new_str, s1, s1_size);
 	strncat(new_str, s2, s2_size);
@@ -36,6 +35,10 @@ char* concat_str(char* s1, char* s2) {
 }
 
 void render_text(SDL_Renderer* renderer, TTF_Font* font, SDL_Color color, const char* text) {
+	if(strlen(text) < 1) {
+		return;
+	}
+
 	SDL_Rect text_rect = {0};
 
 	SDL_Surface* txt_surface = CheckSDLPtr(TTF_RenderUTF8_Blended_Wrapped(font, text, color, 0));
@@ -59,23 +62,29 @@ int main(int argc, char* argv[]) {
 
 	SDL_Window* window = CheckSDLPtr(SDL_CreateWindow("Wheel", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 1280, 720, SDL_WINDOW_RESIZABLE));
 	SDL_Renderer* renderer = CheckSDLPtr(SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED));
-	
+
+	// @Todo: init this properly (see da_append)
+	editor.data.items = "";
 
 	bool quit = false;
+	SDL_Event event = {0};
 	while(!quit) {
-		SDL_Event event = {0};
 		while(SDL_PollEvent(&event)) {
 			switch(event.type) {
 				case SDL_QUIT: {
 					quit = true;
 				} break;
+
+				case SDL_TEXTINPUT: {
+
+				} break;
 			}
-			
 			
 			CheckSDLError(SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0));
 			CheckSDLError(SDL_RenderClear(renderer));
 			
-			render_text(renderer, font, SDL_COLOR_WHITE, );
+			//render_text(renderer, font, (SDL_Color){255, 122, 122, 255}, TEST_TXT);
+			render_text(renderer, font, (SDL_Color){255, 255, 255, 122}, editor.data.items);
 
 			SDL_RenderPresent(renderer);
 		}
