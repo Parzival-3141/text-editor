@@ -64,7 +64,7 @@ int main(int argc, char* argv[]) {
 	SDL_Window* window = CheckSDLPtr(SDL_CreateWindow("Wheel", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 1280, 720, SDL_WINDOW_RESIZABLE));
 	SDL_Renderer* renderer = CheckSDLPtr(SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED));
 
-	// append null terminator so SDL doesn't
+	// append null terminator so SDL doesn't go kaput
 	LIST_APPEND(Data, &editor.data, '\0');
 
 	bool quit = false;
@@ -80,6 +80,11 @@ int main(int argc, char* argv[]) {
 					switch(event.key.keysym.sym) {
 						case SDLK_BACKSPACE: Editor_Backspace(&editor); break;
 						case SDLK_RETURN: Editor_InsertChar(&editor, '\n'); break;
+						case SDLK_DELETE: Editor_Delete(&editor); break;
+
+						// @Todo: make cursor visible
+						case SDLK_LEFT: Editor_MoveCursorLeft(&editor); break;
+						case SDLK_RIGHT: Editor_MoveCursorRight(&editor); break;
 					}
 				} break;
 
@@ -90,18 +95,17 @@ int main(int argc, char* argv[]) {
 					{
 						Editor_InsertChar(&editor, text[i]);
 					}
-
-
 				} break;
 			}
-			
-			CheckSDLError(SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0));
-			CheckSDLError(SDL_RenderClear(renderer));
-			
-			render_text(&editor, renderer, font, SDL_COLOR_WHITE);
-
-			SDL_RenderPresent(renderer);
 		}
+
+		
+		CheckSDLError(SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0));
+		CheckSDLError(SDL_RenderClear(renderer));
+		
+		render_text(&editor, renderer, font, SDL_COLOR_WHITE);
+
+		SDL_RenderPresent(renderer);
 	}
 
 	free(editor.data.items);

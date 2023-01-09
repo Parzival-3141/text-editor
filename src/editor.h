@@ -32,5 +32,9 @@ typedef struct {
 
 void Editor_InsertChar(Editor* e, char c);
 void Editor_Backspace(Editor* e);
+void Editor_Delete(Editor* e);
+
+void Editor_MoveCursorLeft(Editor* e);
+void Editor_MoveCursorRight(Editor* e);
 
 #endif // EDITOR_H_
