@@ -1,3 +1,5 @@
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+
 #include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
@@ -9,13 +11,12 @@
 #include "sdl_utils.h"
 #include "editor.h"
 
-
 #define SDL_COLOR_WHITE (SDL_Color){.r = 255, .g = 255, .b = 255, .a = 255}
 
 #define FONT_SIZE 16
 #define DEFAULT_FONT_NAME "Hack Regular Nerd Font Complete.ttf"
 
-#define TEST_TXT "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
+#define TEST_TXT "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.\nUt enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.\nDuis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.\nExcepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
 
 
 Editor editor = {0};
@@ -34,14 +35,14 @@ char* concat_str(char* s1, char* s2) {
 	return new_str;
 }
 
-void render_text(SDL_Renderer* renderer, TTF_Font* font, SDL_Color color, const char* text) {
-	if(strlen(text) < 1) {
+void render_text(Editor* e, SDL_Renderer* renderer, TTF_Font* font, SDL_Color color) {
+	if(e->data.count <= 1) {
 		return;
 	}
 
 	SDL_Rect text_rect = {0};
 
-	SDL_Surface* txt_surface = CheckSDLPtr(TTF_RenderUTF8_Blended_Wrapped(font, text, color, 0));
+	SDL_Surface* txt_surface = CheckSDLPtr(TTF_RenderUTF8_Blended_Wrapped(font, e->data.items, color, 0));
 	SDL_Texture* txt_texture = CheckSDLPtr(SDL_CreateTextureFromSurface(renderer, txt_surface));
 
 	CheckSDLError(SDL_QueryTexture(txt_texture, 0, 0, &text_rect.w, &text_rect.h));
@@ -63,8 +64,8 @@ int main(int argc, char* argv[]) {
 	SDL_Window* window = CheckSDLPtr(SDL_CreateWindow("Wheel", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 1280, 720, SDL_WINDOW_RESIZABLE));
 	SDL_Renderer* renderer = CheckSDLPtr(SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED));
 
-	// @Todo: init this properly (see da_append)
-	editor.data.items = "";
+	// append null terminator so SDL doesn't
+	LIST_APPEND(Data, &editor.data, '\0');
 
 	bool quit = false;
 	SDL_Event event = {0};
@@ -75,7 +76,21 @@ int main(int argc, char* argv[]) {
 					quit = true;
 				} break;
 
+				case SDL_KEYDOWN: {
+					switch(event.key.keysym.sym) {
+						case SDLK_BACKSPACE: Editor_Backspace(&editor); break;
+						case SDLK_RETURN: Editor_InsertChar(&editor, '\n'); break;
+					}
+				} break;
+
 				case SDL_TEXTINPUT: {
+					const char* text = event.text.text;
+					size_t len = strlen(text);
+					for (size_t i = 0; i < len; ++i)
+					{
+						Editor_InsertChar(&editor, text[i]);
+					}
+
 
 				} break;
 			}
@@ -83,12 +98,13 @@ int main(int argc, char* argv[]) {
 			CheckSDLError(SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0));
 			CheckSDLError(SDL_RenderClear(renderer));
 			
-			//render_text(renderer, font, (SDL_Color){255, 122, 122, 255}, TEST_TXT);
-			render_text(renderer, font, (SDL_Color){255, 255, 255, 122}, editor.data.items);
+			render_text(&editor, renderer, font, SDL_COLOR_WHITE);
 
 			SDL_RenderPresent(renderer);
 		}
 	}
+
+	free(editor.data.items);
 	
 	TTF_CloseFont(font);
 	TTF_Quit();
