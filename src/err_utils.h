@@ -1,10 +1,9 @@
-#ifndef SDL_UTILS_H_
-#define SDL_UTILS_H_ value
-
-#include <SDL.h>
+#ifndef ERR_UTILS_H_
+#define ERR_UTILS_H_
 
 void CheckSDLError(int code);
 void* CheckSDLPtr(void* ptr);
+void CheckFTError(int code, const char* err_msg);
 void* CheckPtr(void* ptr, const char* msg_format, ...);
 
-#endif // SDL_UTILS_H_
+#endif // ERR_UTILS_H_

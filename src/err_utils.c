@@ -1,10 +1,17 @@
-#include "./sdl_utils.h"
+#include "./err_utils.h"
 #include <stdio.h>
-
+#include <SDL.h>
 
 void CheckSDLError(int code) {
 	if(code < 0) {
 		fprintf(stderr, "SDL ERROR: %s\n", SDL_GetError());
+		exit(1);
+	}
+}
+
+void CheckFTError(int code, const char* err_msg) {
+	if(code != 0) {
+		fprintf(stderr, "FreeType ERROR: %s\n", err_msg);
 		exit(1);
 	}
 }

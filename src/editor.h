@@ -2,7 +2,7 @@
 #define EDITOR_H_
 
 #include <stdlib.h>
-#include "sdl_utils.h"
+#include "err_utils.h"
 
 #define LIST_APPEND(list_type, list_ptr, item)                                                                          \
 	do {                                                                                                                \
