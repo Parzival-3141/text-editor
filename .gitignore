@@ -1,6 +1,3 @@
 zig-*
-
-deps/include/*/**
-deps/lib/*/**
-
 build/
+deps/SDL2/*
