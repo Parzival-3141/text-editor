@@ -6,7 +6,8 @@
 
 SDL_Texture* CreateFontAtlas(SDL_Renderer* renderer, FT_Face face) {
 	FT_GlyphSlot g = face->glyph;
-	unsigned int width, height = 0;
+	unsigned int width = 0;
+	unsigned int height = 0;
 	FT_Pixel_Mode pixel_mode;
 
 	for(int i = ASCII_START; i <= ASCII_END; i++) {

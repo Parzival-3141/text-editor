@@ -1,25 +1,28 @@
 const std = @import("std");
-const Builder = std.build.Builder;
 
-pub fn build(b: *Builder) void {
+pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});
-    const mode = b.standardReleaseOptions();
+    const optimize = b.standardOptimizeOption(.{});
 
-    const exe = b.addExecutable("wheel", null);
-    exe.setTarget(target);
-    exe.setBuildMode(mode);
+    b.prominent_compile_errors = true;
+
+    const exe = b.addExecutable(.{ .name = "wheel", .target = target, .optimize = optimize });
     exe.linkLibC();
     exe.install();
 
     const csources = get_c_sourcefiles(b, "src") catch unreachable;
     defer csources.deinit();
 
-    exe.addCSourceFiles(csources.items, &.{ "-Wall", "-Wextra", "-pedantic", "--debug", "-Wno-unused-parameter" });
+    exe.addCSourceFiles(csources.items, &.{ "-Wall", "-Wextra", "-pedantic", "--debug", "-Werror", "-Wno-unused-parameter" });
 
     linkSDL2(b, exe);
     linkFreetype(b, exe);
+    link_glad(b, exe);
+    exe.addIncludePath("deps/cglm/include");
 
     b.installBinFile("deps/Hack Regular Nerd Font Complete.ttf", "Hack Regular Nerd Font Complete.ttf");
+    b.installBinFile("shaders/color.frag", "color.frag");
+    b.installBinFile("shaders/default.vert", "default.vert");
 
     const run_cmd = exe.run();
     run_cmd.step.dependOn(b.getInstallStep());
@@ -31,7 +34,7 @@ pub fn build(b: *Builder) void {
     run_step.dependOn(&run_cmd.step);
 }
 
-fn get_c_sourcefiles(builder: *Builder, search_dir: []const u8) !std.ArrayList([]const u8) {
+fn get_c_sourcefiles(builder: *std.Build, search_dir: []const u8) !std.ArrayList([]const u8) {
     var sources = std.ArrayList([]const u8).init(builder.allocator);
 
     var dir = try std.fs.cwd().openIterableDir(search_dir, .{ .access_sub_paths = true });
@@ -51,7 +54,7 @@ fn get_c_sourcefiles(builder: *Builder, search_dir: []const u8) !std.ArrayList([
     return sources;
 }
 
-fn linkSDL2(b: *Builder, step: *std.build.LibExeObjStep) void {
+fn linkSDL2(b: *std.Build, step: *std.Build.LibExeObjStep) void {
     step.addIncludePath("deps/SDL2/include/SDL2");
     step.addLibraryPath("deps/SDL2/lib");
     step.linkSystemLibraryName("SDL2");
@@ -60,26 +63,45 @@ fn linkSDL2(b: *Builder, step: *std.build.LibExeObjStep) void {
     b.installBinFile("deps/SDL2/lib/SDL2.dll", "SDL2.dll");
 }
 
+const glad_path = "deps/glad";
+fn link_glad(b: *std.Build, step: *std.Build.LibExeObjStep) void {
+    const glad = build_glad(b, step.optimize, step.target);
+    step.linkLibrary(glad);
+    step.addIncludePath(glad_path);
+}
+
+fn build_glad(b: *std.Build, mode: std.builtin.Mode, target: std.zig.CrossTarget) *std.Build.LibExeObjStep {
+    const lib = b.addStaticLibrary(.{ .name = "glad", .target = target, .optimize = mode });
+    lib.linkLibC();
+
+    lib.addIncludePath(glad_path);
+
+    const glad_src = get_c_sourcefiles(b, glad_path) catch unreachable;
+    lib.addCSourceFiles(glad_src.items, &.{});
+    glad_src.deinit();
+
+    return lib;
+}
+
 // Freetype build stuff
 // credit to https://github.com/hexops/mach-freetype/blob/main/build.zig
 const ft_root = "./deps/freetype/freetype";
 const ft_include_path = ft_root ++ "/include";
 
-fn linkFreetype(b: *Builder, step: *std.build.LibExeObjStep) void {
-    const ft_lib = buildFreetype(b, step.build_mode, step.target);
+fn linkFreetype(b: *std.Build, step: *std.Build.LibExeObjStep) void {
+    const ft_lib = buildFreetype(b, step.optimize, step.target);
     step.linkLibrary(ft_lib);
     step.addIncludePath(ft_include_path);
-
-    std.debug.print("Freetype2 Done\n", .{});
 }
 
-fn buildFreetype(b: *Builder, mode: std.builtin.Mode, target: std.zig.CrossTarget) *std.build.LibExeObjStep {
-    std.debug.print("Building Freetype2...\n", .{});
+fn buildFreetype(b: *std.Build, mode: std.builtin.Mode, target: std.zig.CrossTarget) *std.Build.LibExeObjStep {
+    const lib = b.addStaticLibrary(.{
+        .name = "freetype",
+        .target = target,
+        .optimize = mode,
+    });
 
-    const lib = b.addStaticLibrary("freetype", null);
     lib.defineCMacro("FT2_BUILD_LIBRARY", "1");
-    lib.setBuildMode(mode);
-    lib.setTarget(target);
     lib.linkLibC();
     lib.addIncludePath(ft_include_path);
 
