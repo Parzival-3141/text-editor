@@ -85,7 +85,28 @@ void renderer_quad(Renderer* r, vec2 p0, vec2 p1, vec2 p2, vec2 p3,
 	renderer_triangle(r, p2, p3, p0,  c2, c3, c0);
 }
 
+void renderer_rect(Renderer* r, vec2 position, vec2 area, vec4 color) {
+	vec2 p1, p2, p3;
+	glm_vec2_add(position, (vec2){            0, -area[1] * 0.5}, p1);
+	glm_vec2_add(position, (vec2){area[0] * 0.5, -area[1] * 0.5}, p2);  
+	glm_vec2_add(position, (vec2){area[0] * 0.5,              0}, p3);    
 
+	renderer_quad(r, position, p1, p2, p3,
+				  color, color, color, color);
+}
 
+void renderer_rect_centered(Renderer* r, vec2 position, vec2 area, vec4 color) {
+	vec2 p0, p1, p2, p3;
+	float dw  = area[0] * 0.5;
+	float dh  = area[1] * 0.5;
+
+	glm_vec2_add(position, (vec2){-dw,  dh}, p0);
+	glm_vec2_add(position, (vec2){-dw, -dh}, p1);
+	glm_vec2_add(position, (vec2){ dw, -dh}, p2);
+	glm_vec2_add(position, (vec2){ dw,  dh}, p3);
+
+	renderer_quad(r, p0, p1, p2, p3, 
+				  color, color, color, color);
+}
 
 #endif // RENDERER_H

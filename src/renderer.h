@@ -5,7 +5,7 @@
 #define RENDERER_MAX_VERTICES 3*1000
 static_assert(RENDERER_MAX_VERTICES % 3 == 0, "RENDERER_MAX_VERTICES must be a multiple of 3, since we're rendering triangles.");
 
-#define WINDOW_START_WIDTH 1280
+#define WINDOW_START_WIDTH 720
 #define WINDOW_START_HEIGHT 720
 
 typedef struct {
@@ -40,3 +40,6 @@ void renderer_triangle(Renderer* r, vec2 p0, vec2 p1, vec2 p2,
 
 void renderer_quad(Renderer* r, vec2 p0, vec2 p1, vec2 p2, vec2 p3,
 								vec4 c0, vec4 c1, vec4 c2, vec4 c3);
+
+void renderer_rect(Renderer* r, vec2 position, vec2 area, vec4 color);
+void renderer_rect_centered(Renderer* r, vec2 position, vec2 area, vec4 color);

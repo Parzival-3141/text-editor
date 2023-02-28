@@ -23,8 +23,8 @@
 
 #define TEST_TXT "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.\nUt enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.\nDuis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.\nExcepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
 
-#define GLM_VEC2(x, y) (vec2){x, y}
-#define GLM_VEC4(x, y, z, w) (vec4){x, y, z, w}
+#define VEC2(x, y) (vec2){x, y}
+#define VEC4(x, y, z, w) (vec4){x, y, z, w}
 
 Editor editor = {0};
 Renderer renderer = {0};
@@ -105,7 +105,7 @@ int main(int argc, char* argv[]) {
 					if(event.window.event == SDL_WINDOWEVENT_SIZE_CHANGED) {
 						renderer.window_width = event.window.data1;
 						renderer.window_height = event.window.data2;
-						
+
 						glViewport(0, 0, renderer.window_width, renderer.window_height);
 					}
 				} break;
@@ -121,15 +121,30 @@ int main(int argc, char* argv[]) {
 		vec4 g = {0, 1, 0, 1};
 		vec4 b = {0, 0, 1, 1};
 
-		renderer_triangle(&renderer, GLM_VEC2(-0.5, -0.5), GLM_VEC2(0.5, -0.5), GLM_VEC2(0, 0.5), r, g, b);
+		renderer_triangle(&renderer, VEC2(-0.5, -0.5), VEC2(0.5, -0.5), VEC2(0, 0.5), r, g, b);
 		
-		renderer_triangle(&renderer, GLM_VEC2(-1, -0.5), GLM_VEC2(0.5, -1), GLM_VEC2(-0.5, 1), r, g, b);
+		renderer_triangle(&renderer, VEC2(-1, -0.5), VEC2(0.5, -1), VEC2(-0.5, 1), r, g, b);
 
-		renderer_quad(&renderer, GLM_VEC2(-0.75, 0.75), GLM_VEC2(-0.75, -0.75), GLM_VEC2(0.75, -0.75), GLM_VEC2(0.75, 0.75),
-								 b, GLM_VEC4_BLACK, r, g);
+		renderer_quad(&renderer, VEC2(-0.75, 0.75), VEC2(-0.75, -0.75), VEC2(0.75, -0.75), VEC2(0.75, 0.75),
+								 g, GLM_VEC4_BLACK, r, b);
+
+		renderer_rect_centered(&renderer, VEC2(0, 0), VEC2(0.15, 0.02), GLM_VEC4_ONE);
+		renderer_rect_centered(&renderer, VEC2(0, 0), VEC2(0.02, 0.15), GLM_VEC4_ONE);
+		
+		renderer_rect(&renderer, VEC2(-1.00,  1.00), VEC2(0.50, 0.25), g);
+		renderer_rect(&renderer, VEC2(-1.00,  1.00), VEC2(0.25, 0.50), g);
+		
+		renderer_rect(&renderer, VEC2(-1.00, -0.75), VEC2(0.25, 0.50), GLM_VEC4_BLACK);
+		renderer_rect(&renderer, VEC2(-1.00, -0.88), VEC2(0.50, 0.25), GLM_VEC4_BLACK);
+		
+		renderer_rect(&renderer, VEC2( 0.88, -0.75), VEC2(0.25, 0.50), r);
+		renderer_rect(&renderer, VEC2( 0.75, -0.88), VEC2(0.50, 0.25), r);
+		
+		renderer_rect(&renderer, VEC2( 0.75,  1.00), VEC2(0.50, 0.25), b);
+		renderer_rect(&renderer, VEC2( 0.88,  1.00), VEC2(0.25, 0.50), b);
+		
 
 		renderer_draw(&renderer);
-
 		SDL_GL_SwapWindow(window);
 
 		GLenum err = glGetError();
