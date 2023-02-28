@@ -24,7 +24,6 @@ void renderer_init(Renderer* r) {
 	glEnableVertexAttribArray(1);
 	glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(Renderer_Vertex), (GLvoid*)offsetof(Renderer_Vertex, color));
 
-
 	GLuint shaders[] = {
 		glue_compile_shader_file("default.vert", GL_VERTEX_SHADER),
 		glue_compile_shader_file("color.frag", GL_FRAGMENT_SHADER),
@@ -34,6 +33,28 @@ void renderer_init(Renderer* r) {
 	for (int i = 0; i < NUM_SHADERS; ++i)
 	{
 		r->programs[i] = glue_compile_shader_program((GLuint[]){shaders[0], shaders[i+1]}, 2);
+	}
+
+	glue_delete_shaders(shaders, ARRAYLEN(shaders));
+}
+
+void renderer_recompile_shaders(Renderer* r) {
+	// @Todo: I don't feel like writing stuff to properly copy files to the working directory
+	// or setup an abstraction for the file paths, so I'm hardcoding it for now. 
+	// Make sure to update this shader array to match the one in renderer_init.
+
+	GLuint shaders[] = {
+		glue_compile_shader_file("../../shaders/default.vert", GL_VERTEX_SHADER),
+		glue_compile_shader_file("../../shaders/color.frag", GL_FRAGMENT_SHADER),
+		//glue_compile_shader_file("../../shaders/text.frag", GL_FRAGMENT_SHADER),
+	};
+
+	GLuint program;
+	for (int i = 0; i < NUM_SHADERS; ++i)
+	{
+		program = glue_compile_shader_program((GLuint[]){shaders[0], shaders[i+1]}, 2);
+		glDeleteProgram(r->programs[i]);
+		r->programs[i] = program;
 	}
 
 	glue_delete_shaders(shaders, ARRAYLEN(shaders));

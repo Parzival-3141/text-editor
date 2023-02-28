@@ -89,6 +89,16 @@ int main(int argc, char* argv[]) {
 						// @Todo: make cursor visible
 						case SDLK_LEFT: Editor_MoveCursorLeft(&editor); break;
 						case SDLK_RIGHT: Editor_MoveCursorRight(&editor); break;
+						
+						case SDLK_F1: { 
+							renderer.draw_wireframe = !renderer.draw_wireframe;
+							glPolygonMode(GL_FRONT_AND_BACK, renderer.draw_wireframe ? GL_LINE : GL_FILL);
+						} break;
+
+						case SDLK_F2: { 
+							renderer_recompile_shaders(&renderer);
+							printf("recompiled shaders\n");
+						} break;
 					}
 				} break;
 
@@ -121,12 +131,13 @@ int main(int argc, char* argv[]) {
 		vec4 g = {0, 1, 0, 1};
 		vec4 b = {0, 0, 1, 1};
 
-		renderer_triangle(&renderer, VEC2(-0.5, -0.5), VEC2(0.5, -0.5), VEC2(0, 0.5), r, g, b);
 		
 		renderer_triangle(&renderer, VEC2(-1, -0.5), VEC2(0.5, -1), VEC2(-0.5, 1), r, g, b);
 
 		renderer_quad(&renderer, VEC2(-0.75, 0.75), VEC2(-0.75, -0.75), VEC2(0.75, -0.75), VEC2(0.75, 0.75),
 								 g, GLM_VEC4_BLACK, r, b);
+
+		renderer_triangle(&renderer, VEC2(-0.5, -0.5), VEC2(0.5, -0.5), VEC2(0, 0.5), r, g, b);
 
 		renderer_rect_centered(&renderer, VEC2(0, 0), VEC2(0.15, 0.02), GLM_VEC4_ONE);
 		renderer_rect_centered(&renderer, VEC2(0, 0), VEC2(0.02, 0.15), GLM_VEC4_ONE);

@@ -28,10 +28,13 @@ typedef struct {
 	Shader current_shader;
 
 	float window_width, window_height;
+	bool draw_wireframe;
 } Renderer;
 
 void renderer_init(Renderer* r);
 void renderer_set_shader(Renderer* r, Shader s);
+void renderer_recompile_shaders(Renderer* r);
+
 void renderer_draw(Renderer* r);
 
 void renderer_vertex(Renderer* r, vec2 pos, vec4 color);
