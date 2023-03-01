@@ -4,6 +4,7 @@
 
 #include <cglm/cglm.h>
 #include <glad.h>
+
 #define SDL_MAIN_HANDLED
 #include <SDL.h>
 
@@ -129,29 +130,29 @@ int main(int argc, char* argv[]) {
 		vec4 r = {1, 0, 0, 1};
 		vec4 g = {0, 1, 0, 1};
 		vec4 b = {0, 0, 1, 1};
+		vec2 uv = {0};
 
-		
-		renderer_triangle(renderer, VEC2(-1, -0.5), VEC2(0.5, -1), VEC2(-0.5, 1), r, g, b);
+		renderer_triangle(renderer, VEC2(-1, -0.5), VEC2(0.5, -1), VEC2(-0.5, 1), r, g, b, uv, uv, uv);
 
 		renderer_quad(renderer, VEC2(-0.75, -0.75), VEC2(0.75, -0.75), VEC2(-0.75, 0.75), VEC2(0.75, 0.75),
-								 GLM_VEC4_BLACK, r, g, b);
+								 GLM_VEC4_BLACK, r, g, b, VEC2(0,0), VEC2(1,0), VEC2(0,1), VEC2(1,1));
 
-		renderer_triangle(renderer, VEC2(-0.5, -0.5), VEC2(0.5, -0.5), VEC2(0, 0.5), r, g, b);
+		renderer_triangle(renderer, VEC2(-0.5, -0.5), VEC2(0.5, -0.5), VEC2(0, 0.5), r, g, b, VEC2(0,0), VEC2(1,0), VEC2(0, 1));
 
-		renderer_rect_centered(renderer, VEC2(0, 0), VEC2(0.15, 0.02), GLM_VEC4_ONE);
-		renderer_rect_centered(renderer, VEC2(0, 0), VEC2(0.02, 0.15), GLM_VEC4_ONE);
+		renderer_solid_rect_centered(renderer, VEC2(0, 0), VEC2(0.15, 0.02), GLM_VEC4_ONE);
+		renderer_solid_rect_centered(renderer, VEC2(0, 0), VEC2(0.02, 0.15), GLM_VEC4_ONE);
 		
-		renderer_rect(renderer, VEC2(-1.00, -1.00), VEC2(0.25, 0.12), GLM_VEC4_BLACK);
-		renderer_rect(renderer, VEC2(-1.00, -1.00), VEC2(0.12, 0.25), GLM_VEC4_BLACK);
+		renderer_solid_rect(renderer, VEC2(-1.00, -1.00), VEC2(0.25, 0.12), GLM_VEC4_BLACK);
+		renderer_solid_rect(renderer, VEC2(-1.00, -1.00), VEC2(0.12, 0.25), GLM_VEC4_BLACK);
 		
-		renderer_rect(renderer, VEC2( 0.75, -1.00), VEC2(0.25, 0.12), r);
-		renderer_rect(renderer, VEC2( 0.88, -1.00), VEC2(0.12, 0.25), r);
+		renderer_solid_rect(renderer, VEC2( 0.75, -1.00), VEC2(0.25, 0.12), r);
+		renderer_solid_rect(renderer, VEC2( 0.88, -1.00), VEC2(0.12, 0.25), r);
 		
-		renderer_rect(renderer, VEC2(-1.00,  0.88), VEC2(0.25, 0.12), g);
-		renderer_rect(renderer, VEC2(-1.00,  0.75), VEC2(0.12, 0.25), g);
+		renderer_solid_rect(renderer, VEC2(-1.00,  0.88), VEC2(0.25, 0.12), g);
+		renderer_solid_rect(renderer, VEC2(-1.00,  0.75), VEC2(0.12, 0.25), g);
 		
-		renderer_rect(renderer, VEC2( 0.75,  0.88), VEC2(0.25, 0.12), b);
-		renderer_rect(renderer, VEC2( 0.88,  0.75), VEC2(0.12, 0.25), b);
+		renderer_solid_rect(renderer, VEC2( 0.75,  0.88), VEC2(0.25, 0.12), b);
+		renderer_solid_rect(renderer, VEC2( 0.88,  0.75), VEC2(0.12, 0.25), b);
 		
 
 		renderer_draw(renderer);

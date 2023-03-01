@@ -11,6 +11,7 @@ static_assert(RENDERER_MAX_VERTICES % 3 == 0, "RENDERER_MAX_VERTICES must be a m
 typedef struct {
 	vec2 position;
 	vec4 color;
+	vec2 uv;
 } Renderer_Vertex;
 
 typedef enum {
@@ -32,17 +33,26 @@ typedef struct {
 } Renderer;
 
 void renderer_init(Renderer* r);
+void renderer_draw(Renderer* r);
+
 void renderer_set_shader(Renderer* r, Shader s);
 void renderer_recompile_shaders(Renderer* r);
 
-void renderer_draw(Renderer* r);
+void renderer_vertex(Renderer* r, vec2 pos, vec4 color, vec2 uv);
 
-void renderer_vertex(Renderer* r, vec2 pos, vec4 color);
 void renderer_triangle(Renderer* r, vec2 p0, vec2 p1, vec2 p2,
-									vec4 c0, vec4 c1, vec4 c2);
+									vec4 c0, vec4 c1, vec4 c2,
+									vec2 uv0, vec2 uv1, vec2 uv2);
 
 void renderer_quad(Renderer* r, vec2 p0, vec2 p1, vec2 p2, vec2 p3,
-								vec4 c0, vec4 c1, vec4 c2, vec4 c3);
+								vec4 c0, vec4 c1, vec4 c2, vec4 c3,
+								vec2 uv0, vec2 uv1, vec2 uv2, vec2 uv3);
 
-void renderer_rect(Renderer* r, vec2 position, vec2 area, vec4 color);
-void renderer_rect_centered(Renderer* r, vec2 position, vec2 area, vec4 color);
+void renderer_image_rect(Renderer* r, vec2 position, vec2 area, vec4 color,
+										vec2 uv_origin, vec2 uv_area);
+
+void renderer_image_rect_centered(Renderer* r, vec2 position, vec2 area, vec4 color,
+										 		vec2 uv_origin, vec2 uv_area);
+
+void renderer_solid_rect(Renderer* r, vec2 position, vec2 area, vec4 color);
+void renderer_solid_rect_centered(Renderer* r, vec2 position, vec2 area, vec4 color);

@@ -24,6 +24,10 @@ void renderer_init(Renderer* r) {
 	glEnableVertexAttribArray(1);
 	glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(Renderer_Vertex), (GLvoid*)offsetof(Renderer_Vertex, color));
 
+	// UVs Attribute
+	glEnableVertexAttribArray(2);
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Renderer_Vertex), (GLvoid*)offsetof(Renderer_Vertex, uv));
+
 	GLuint shaders[] = {
 		glue_compile_shader_file("default.vert", GL_VERTEX_SHADER),
 		glue_compile_shader_file("color.frag", GL_FRAGMENT_SHADER),
@@ -77,58 +81,86 @@ void renderer_draw(Renderer* r) {
 	r->vertex_count = 0;
 }
 
-void renderer_vertex(Renderer* r, vec2 pos, vec4 color) {
+void renderer_vertex(Renderer* r, vec2 pos, vec4 color, vec2 uv) {
 	assert(r->vertex_count <= RENDERER_MAX_VERTICES);
 
 	// add vertex to renderer vertex buffer
 	Renderer_Vertex* last_vert = &r->vertices[r->vertex_count++];
 	glm_vec2_copy(pos, last_vert->position);
 	glm_vec4_copy(color, last_vert->color);
+	glm_vec2_copy(uv, last_vert->uv);
 }
 
 void renderer_triangle(Renderer* r, vec2 p0, vec2 p1, vec2 p2,
-									vec4 c0, vec4 c1, vec4 c2) 
+									vec4 c0, vec4 c1, vec4 c2,
+									vec2 uv0, vec2 uv1, vec2 uv2) 
 {
-	renderer_vertex(r, p0, c0);
-	renderer_vertex(r, p1, c1);
-	renderer_vertex(r, p2, c2);
+	renderer_vertex(r, p0, c0, uv0);
+	renderer_vertex(r, p1, c1, uv1);
+	renderer_vertex(r, p2, c2, uv2);
 }
 
 void renderer_quad(Renderer* r, vec2 p0, vec2 p1, vec2 p2, vec2 p3,
-								vec4 c0, vec4 c1, vec4 c2, vec4 c3) 
+								vec4 c0, vec4 c1, vec4 c2, vec4 c3,
+								vec2 uv0, vec2 uv1, vec2 uv2, vec2 uv3) 
 {
 	// Quad vertex ordering
 	// 2-3
 	// |\|
 	// 0-1
 
-	renderer_triangle(r, p0, p1, p2,  c0, c1, c2);
-	renderer_triangle(r, p1, p2, p3,  c1, c2, c3);
+	renderer_triangle(r, p0, p1, p2,  c0, c1, c2,  uv0, uv1, uv2);
+	renderer_triangle(r, p1, p2, p3,  c1, c2, c3,  uv1, uv2, uv3);
 }
 
-void renderer_rect(Renderer* r, vec2 position, vec2 area, vec4 color) {
+void renderer_image_rect(Renderer* r, vec2 position, vec2 area, vec4 color,
+										vec2 uv_origin, vec2 uv_area)
+{
 	vec2 p1, p2, p3;
-
 	glm_vec2_add(position, (vec2){area[0],       0}, p1);
-	glm_vec2_add(position, (vec2){      0, area[1]}, p2);  
-	glm_vec2_add(position, (vec2){area[0], area[1]}, p3);    
+	glm_vec2_add(position, (vec2){      0, area[1]}, p2);
+	glm_vec2_add(position, (vec2){area[0], area[1]}, p3);
+
+	vec2 uv1, uv2, uv3;
+	glm_vec2_add(uv_origin, (vec2){uv_area[0],          0}, uv1);
+	glm_vec2_add(uv_origin, (vec2){         0, uv_area[1]}, uv2);
+	glm_vec2_add(uv_origin, (vec2){uv_area[0], uv_area[1]}, uv3);
 
 	renderer_quad(r, position, p1, p2, p3,
-				  color, color, color, color);
+				  color, color, color, color,
+				  uv_origin, uv1, uv2, uv3);
 }
 
-void renderer_rect_centered(Renderer* r, vec2 position, vec2 area, vec4 color) {
-	vec2 p0, p1, p2, p3;
+void renderer_image_rect_centered(Renderer* r, vec2 position, vec2 area, vec4 color,
+										 		vec2 uv_origin, vec2 uv_area)
+{
 	float dw  = area[0] * 0.5;
 	float dh  = area[1] * 0.5;
 
+	vec2 p0, p1, p2, p3;
 	glm_vec2_add(position, (vec2){-dw, -dh}, p0);
 	glm_vec2_add(position, (vec2){ dw, -dh}, p1);
 	glm_vec2_add(position, (vec2){-dw,  dh}, p2);
 	glm_vec2_add(position, (vec2){ dw,  dh}, p3);
 
+	vec2 uv1, uv2, uv3;
+	glm_vec2_add(uv_origin, (vec2){uv_area[0],          0}, uv1);
+	glm_vec2_add(uv_origin, (vec2){         0, uv_area[1]}, uv2);
+	glm_vec2_add(uv_origin, (vec2){uv_area[0], uv_area[1]}, uv3);
+
 	renderer_quad(r, p0, p1, p2, p3, 
-				  color, color, color, color);
+				  color, color, color, color,
+				  uv_origin, uv1, uv2, uv3);
+}
+
+void renderer_solid_rect(Renderer* r, vec2 position, vec2 area, vec4 color) {
+	vec2 uv = {0};
+	renderer_image_rect(r, position, area, color, uv, uv);
+}
+
+void renderer_solid_rect_centered(Renderer* r, vec2 position, vec2 area, vec4 color) {
+	vec2 uv = {0};
+	renderer_image_rect_centered(r, position, area, color, uv, uv);
 }
 
 #endif // RENDERER_H
