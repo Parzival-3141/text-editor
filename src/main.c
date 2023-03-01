@@ -12,7 +12,6 @@
 
 #include "err_utils.h"
 #include "editor.h"
-#include "free_glyph.h"
 #include "common.h"
 #include "renderer.h"
 
@@ -27,7 +26,7 @@
 #define VEC4(x, y, z, w) (vec4){x, y, z, w}
 
 Editor editor = {0};
-Renderer renderer = {0};
+Renderer* renderer = &(Renderer){0};
 
 int main(int argc, char* argv[]) {
 	UNUSED(argc);
@@ -69,7 +68,7 @@ int main(int argc, char* argv[]) {
 	// append null terminator so SDL doesn't go kaput
 	LIST_APPEND(Data, &editor.data, '\0');
 
-	renderer_init(&renderer);
+	renderer_init(renderer);
 
 	bool quit = false;
 	SDL_Event event = {0};
@@ -91,12 +90,12 @@ int main(int argc, char* argv[]) {
 						case SDLK_RIGHT: Editor_MoveCursorRight(&editor); break;
 						
 						case SDLK_F1: { 
-							renderer.draw_wireframe = !renderer.draw_wireframe;
-							glPolygonMode(GL_FRONT_AND_BACK, renderer.draw_wireframe ? GL_LINE : GL_FILL);
+							renderer->draw_wireframe = !renderer->draw_wireframe;
+							glPolygonMode(GL_FRONT_AND_BACK, renderer->draw_wireframe ? GL_LINE : GL_FILL);
 						} break;
 
 						case SDLK_F2: { 
-							renderer_recompile_shaders(&renderer);
+							renderer_recompile_shaders(renderer);
 							printf("recompiled shaders\n");
 						} break;
 					}
@@ -113,10 +112,10 @@ int main(int argc, char* argv[]) {
 
 				case SDL_WINDOWEVENT: {
 					if(event.window.event == SDL_WINDOWEVENT_SIZE_CHANGED) {
-						renderer.window_width = event.window.data1;
-						renderer.window_height = event.window.data2;
+						renderer->window_width = event.window.data1;
+						renderer->window_height = event.window.data2;
 
-						glViewport(0, 0, renderer.window_width, renderer.window_height);
+						glViewport(0, 0, renderer->window_width, renderer->window_height);
 					}
 				} break;
 			}
@@ -125,37 +124,37 @@ int main(int argc, char* argv[]) {
 		glClearColor(0.5, 0.5, 0.5, 1);
 		glClear(GL_COLOR_BUFFER_BIT);
 
-		renderer_set_shader(&renderer, COLOR_SHADER);
+		renderer_set_shader(renderer, COLOR_SHADER);
 
 		vec4 r = {1, 0, 0, 1};
 		vec4 g = {0, 1, 0, 1};
 		vec4 b = {0, 0, 1, 1};
 
 		
-		renderer_triangle(&renderer, VEC2(-1, -0.5), VEC2(0.5, -1), VEC2(-0.5, 1), r, g, b);
+		renderer_triangle(renderer, VEC2(-1, -0.5), VEC2(0.5, -1), VEC2(-0.5, 1), r, g, b);
 
-		renderer_quad(&renderer, VEC2(-0.75, 0.75), VEC2(-0.75, -0.75), VEC2(0.75, -0.75), VEC2(0.75, 0.75),
-								 g, GLM_VEC4_BLACK, r, b);
+		renderer_quad(renderer, VEC2(-0.75, -0.75), VEC2(0.75, -0.75), VEC2(-0.75, 0.75), VEC2(0.75, 0.75),
+								 GLM_VEC4_BLACK, r, g, b);
 
-		renderer_triangle(&renderer, VEC2(-0.5, -0.5), VEC2(0.5, -0.5), VEC2(0, 0.5), r, g, b);
+		renderer_triangle(renderer, VEC2(-0.5, -0.5), VEC2(0.5, -0.5), VEC2(0, 0.5), r, g, b);
 
-		renderer_rect_centered(&renderer, VEC2(0, 0), VEC2(0.15, 0.02), GLM_VEC4_ONE);
-		renderer_rect_centered(&renderer, VEC2(0, 0), VEC2(0.02, 0.15), GLM_VEC4_ONE);
+		renderer_rect_centered(renderer, VEC2(0, 0), VEC2(0.15, 0.02), GLM_VEC4_ONE);
+		renderer_rect_centered(renderer, VEC2(0, 0), VEC2(0.02, 0.15), GLM_VEC4_ONE);
 		
-		renderer_rect(&renderer, VEC2(-1.00,  1.00), VEC2(0.50, 0.25), g);
-		renderer_rect(&renderer, VEC2(-1.00,  1.00), VEC2(0.25, 0.50), g);
+		renderer_rect(renderer, VEC2(-1.00, -1.00), VEC2(0.25, 0.12), GLM_VEC4_BLACK);
+		renderer_rect(renderer, VEC2(-1.00, -1.00), VEC2(0.12, 0.25), GLM_VEC4_BLACK);
 		
-		renderer_rect(&renderer, VEC2(-1.00, -0.75), VEC2(0.25, 0.50), GLM_VEC4_BLACK);
-		renderer_rect(&renderer, VEC2(-1.00, -0.88), VEC2(0.50, 0.25), GLM_VEC4_BLACK);
+		renderer_rect(renderer, VEC2( 0.75, -1.00), VEC2(0.25, 0.12), r);
+		renderer_rect(renderer, VEC2( 0.88, -1.00), VEC2(0.12, 0.25), r);
 		
-		renderer_rect(&renderer, VEC2( 0.88, -0.75), VEC2(0.25, 0.50), r);
-		renderer_rect(&renderer, VEC2( 0.75, -0.88), VEC2(0.50, 0.25), r);
+		renderer_rect(renderer, VEC2(-1.00,  0.88), VEC2(0.25, 0.12), g);
+		renderer_rect(renderer, VEC2(-1.00,  0.75), VEC2(0.12, 0.25), g);
 		
-		renderer_rect(&renderer, VEC2( 0.75,  1.00), VEC2(0.50, 0.25), b);
-		renderer_rect(&renderer, VEC2( 0.88,  1.00), VEC2(0.25, 0.50), b);
+		renderer_rect(renderer, VEC2( 0.75,  0.88), VEC2(0.25, 0.12), b);
+		renderer_rect(renderer, VEC2( 0.88,  0.75), VEC2(0.12, 0.25), b);
 		
 
-		renderer_draw(&renderer);
+		renderer_draw(renderer);
 		SDL_GL_SwapWindow(window);
 
 		GLenum err = glGetError();
