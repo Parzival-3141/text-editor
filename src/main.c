@@ -18,13 +18,10 @@
 
 #define SDL_COLOR_WHITE (SDL_Color){.r = 255, .g = 255, .b = 255, .a = 255}
 
-#define FONT_SIZE 16
+#define FONT_SIZE 42
 #define DEFAULT_FONT_NAME "Hack Regular Nerd Font Complete.ttf"
 
 #define TEST_TXT "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.\nUt enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.\nDuis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.\nExcepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
-
-#define VEC2(x, y) (vec2){x, y}
-#define VEC4(x, y, z, w) (vec4){x, y, z, w}
 
 Editor editor = {0};
 Renderer* renderer = &(Renderer){0};
@@ -51,7 +48,10 @@ int main(int argc, char* argv[]) {
 	SDL_GLContext gl_context = SDL_GL_CreateContext(window);
 	gladLoadGLLoader((GLADloadproc)SDL_GL_GetProcAddress);
 	
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glViewport(0, 0, WINDOW_START_WIDTH, WINDOW_START_HEIGHT);
+	
 
 	// Init FreeType
 	//printf("BasePath: %s\n", common_base_path);
@@ -66,8 +66,10 @@ int main(int argc, char* argv[]) {
 
 	FT_Set_Pixel_Sizes(face, 0, FONT_SIZE);
 
-	// append null terminator so SDL doesn't go kaput
-	LIST_APPEND(Data, &editor.data, '\0');
+	create_font_atlas(&editor.font, face);
+	FT_Done_Face(face);
+
+	// LIST_APPEND(Data, &editor.data, '\0');
 
 	renderer_init(renderer);
 
@@ -125,44 +127,79 @@ int main(int argc, char* argv[]) {
 		glClearColor(0.5, 0.5, 0.5, 1);
 		glClear(GL_COLOR_BUFFER_BIT);
 
-		renderer_set_shader(renderer, COLOR_SHADER);
+		// color shape stuff
+		{
+			renderer_set_shader(renderer, COLOR_SHADER);
 
-		vec4 r = {1, 0, 0, 1};
-		vec4 g = {0, 1, 0, 1};
-		vec4 b = {0, 0, 1, 1};
-		vec2 uv = {0};
+			vec4 r = {1, 0, 0, 1};
+			vec4 g = {0, 1, 0, 1};
+			vec4 b = {0, 0, 1, 1};
+			vec2 uv = {0};
 
-		renderer_triangle(renderer, VEC2(-1, -0.5), VEC2(0.5, -1), VEC2(-0.5, 1), r, g, b, uv, uv, uv);
+			renderer_triangle(renderer, VEC2(-1, -0.5), VEC2(0.5, -1), VEC2(-0.5, 1), r, g, b, uv, uv, uv);
 
-		renderer_quad(renderer, VEC2(-0.75, -0.75), VEC2(0.75, -0.75), VEC2(-0.75, 0.75), VEC2(0.75, 0.75),
-								 GLM_VEC4_BLACK, r, g, b, VEC2(0,0), VEC2(1,0), VEC2(0,1), VEC2(1,1));
+			renderer_quad(renderer, VEC2(-0.75, -0.75), VEC2(0.75, -0.75), VEC2(-0.75, 0.75), VEC2(0.75, 0.75),
+									 GLM_VEC4_BLACK, r, g, b, VEC2(0,0), VEC2(1,0), VEC2(0,1), VEC2(1,1));
 
-		renderer_triangle(renderer, VEC2(-0.5, -0.5), VEC2(0.5, -0.5), VEC2(0, 0.5), r, g, b, VEC2(0,0), VEC2(1,0), VEC2(0, 1));
+			renderer_triangle(renderer, VEC2(-0.5, -0.5), VEC2(0.5, -0.5), VEC2(0, 0.5), r, g, b, VEC2(0,0), VEC2(1,0), VEC2(0, 1));
 
-		renderer_solid_rect_centered(renderer, VEC2(0, 0), VEC2(0.15, 0.02), GLM_VEC4_ONE);
-		renderer_solid_rect_centered(renderer, VEC2(0, 0), VEC2(0.02, 0.15), GLM_VEC4_ONE);
-		
-		renderer_solid_rect(renderer, VEC2(-1.00, -1.00), VEC2(0.25, 0.12), GLM_VEC4_BLACK);
-		renderer_solid_rect(renderer, VEC2(-1.00, -1.00), VEC2(0.12, 0.25), GLM_VEC4_BLACK);
-		
-		renderer_solid_rect(renderer, VEC2( 0.75, -1.00), VEC2(0.25, 0.12), r);
-		renderer_solid_rect(renderer, VEC2( 0.88, -1.00), VEC2(0.12, 0.25), r);
-		
-		renderer_solid_rect(renderer, VEC2(-1.00,  0.88), VEC2(0.25, 0.12), g);
-		renderer_solid_rect(renderer, VEC2(-1.00,  0.75), VEC2(0.12, 0.25), g);
-		
-		renderer_solid_rect(renderer, VEC2( 0.75,  0.88), VEC2(0.25, 0.12), b);
-		renderer_solid_rect(renderer, VEC2( 0.88,  0.75), VEC2(0.12, 0.25), b);
-		
-
-		renderer_draw(renderer);
-		SDL_GL_SwapWindow(window);
-
-		GLenum err = glGetError();
-		if(err != GL_NO_ERROR) {
-			fprintf(stderr, "GL ERROR!");
-			exit(1);
+			renderer_solid_rect_centered(renderer, VEC2(0, 0), VEC2(0.15, 0.02), GLM_VEC4_ONE);
+			renderer_solid_rect_centered(renderer, VEC2(0, 0), VEC2(0.02, 0.15), GLM_VEC4_ONE);
+			
+			renderer_solid_rect(renderer, VEC2(-1.00, -1.00), VEC2(0.25, 0.12), GLM_VEC4_BLACK);
+			renderer_solid_rect(renderer, VEC2(-1.00, -1.00), VEC2(0.12, 0.25), GLM_VEC4_BLACK);
+			
+			renderer_solid_rect(renderer, VEC2( 0.75, -1.00), VEC2(0.25, 0.12), r);
+			renderer_solid_rect(renderer, VEC2( 0.88, -1.00), VEC2(0.12, 0.25), r);
+			
+			renderer_solid_rect(renderer, VEC2(-1.00,  0.88), VEC2(0.25, 0.12), g);
+			renderer_solid_rect(renderer, VEC2(-1.00,  0.75), VEC2(0.12, 0.25), g);
+			
+			renderer_solid_rect(renderer, VEC2( 0.75,  0.88), VEC2(0.25, 0.12), b);
+			renderer_solid_rect(renderer, VEC2( 0.88,  0.75), VEC2(0.12, 0.25), b);
+			
+			renderer_draw(renderer);
 		}
+
+		// @Todo: abstract all this into a render_text function 
+		renderer_set_shader(renderer, TEXT_SHADER);
+
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, editor.font.atlas);
+		{
+			GlyphInfo* gi = &editor.font.glyphs['h'];
+
+			vec2 uv_origin;
+			vec2 uv_size;
+
+			glm_vec2(VEC2(gi->u, gi->size[1] / (float)editor.font.atlas_height), uv_origin);
+			glm_vec2_div(
+				VEC2(gi->size[0], gi->size[1]), 
+				VEC2(editor.font.atlas_width, -editor.font.atlas_height), 
+				uv_size
+			);
+
+			renderer_image_rect(renderer, VEC2(-1,-1), VEC2(0.9, 0.9), GLM_VEC4_ONE, uv_origin, uv_size);
+		}
+		{
+			GlyphInfo* gi = &editor.font.glyphs['i'];
+
+			vec2 uv_origin;
+			vec2 uv_size;
+
+			glm_vec2(VEC2(gi->u, gi->size[1] / (float)editor.font.atlas_height), uv_origin);
+			glm_vec2_div(
+				VEC2(gi->size[0], gi->size[1]), 
+				VEC2(editor.font.atlas_width, -editor.font.atlas_height), 
+				uv_size
+			);
+
+			renderer_image_rect(renderer, VEC2(0,-1), VEC2(0.9, 0.9), GLM_VEC4_ONE, uv_origin, uv_size);
+		}
+		renderer_draw(renderer);
+
+		SDL_GL_SwapWindow(window);
+		check_gl_err();
 	}
 
 	free(editor.data.items);
@@ -174,3 +211,6 @@ int main(int argc, char* argv[]) {
 	SDL_Quit();
 	return 0;
 }
+
+
+// @Todo: use a 2d projection matrix so I can use a better coordinate system (like pixels)

@@ -1,6 +1,7 @@
-#include "./err_utils.h"
+#include "err_utils.h"
 #include <stdio.h>
 #include <SDL.h>
+#include <glad.h>
 
 void CheckSDLError(int code) {
 	if(code < 0) {
@@ -34,3 +35,24 @@ void* CheckPtr(void* ptr, const char* msg_format, ...) {
 	return ptr;
 }
 
+void check_gl_err(void) {
+	GLenum err = glGetError();
+	if(err != GL_NO_ERROR) {
+		while(err != GL_NO_ERROR)
+		{
+			char* msg;
+			switch(err) {
+				case GL_INVALID_ENUM: msg = "GL_INVALID_ENUM"; break;
+				case GL_INVALID_VALUE: msg = "GL_INVALID_VALUE"; break;
+				case GL_INVALID_OPERATION: msg = "GL_INVALID_OPERATION"; break;
+				case GL_INVALID_FRAMEBUFFER_OPERATION: msg = "GL_INVALID_FRAMEBUFFER_OPERATION"; break;
+				case GL_OUT_OF_MEMORY: msg = "GL_OUT_OF_MEMORY"; break;
+			} 
+
+			fprintf(stderr, "OPENGL ERROR: %s\n", msg);
+			err = glGetError();
+		}
+		
+		exit(1);
+	}
+}

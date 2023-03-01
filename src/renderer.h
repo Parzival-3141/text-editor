@@ -16,7 +16,7 @@ typedef struct {
 
 typedef enum {
 	COLOR_SHADER = 0,
-	// TEXT_SHADER,
+	TEXT_SHADER,
 	NUM_SHADERS
 } Shader;
 

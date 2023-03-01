@@ -31,7 +31,7 @@ void renderer_init(Renderer* r) {
 	GLuint shaders[] = {
 		glue_compile_shader_file("default.vert", GL_VERTEX_SHADER),
 		glue_compile_shader_file("color.frag", GL_FRAGMENT_SHADER),
-		//glue_compile_shader_file("text.frag", GL_FRAGMENT_SHADER),
+		glue_compile_shader_file("text.frag", GL_FRAGMENT_SHADER),
 	};
 
 	for (int i = 0; i < NUM_SHADERS; ++i)
@@ -50,7 +50,7 @@ void renderer_recompile_shaders(Renderer* r) {
 	GLuint shaders[] = {
 		glue_compile_shader_file("../../shaders/default.vert", GL_VERTEX_SHADER),
 		glue_compile_shader_file("../../shaders/color.frag", GL_FRAGMENT_SHADER),
-		//glue_compile_shader_file("../../shaders/text.frag", GL_FRAGMENT_SHADER),
+		glue_compile_shader_file("../../shaders/text.frag", GL_FRAGMENT_SHADER),
 	};
 
 	GLuint program;
@@ -67,7 +67,7 @@ void renderer_recompile_shaders(Renderer* r) {
 void renderer_set_shader(Renderer* r, Shader shader) {
 	r->current_shader = shader;
 	glUseProgram(r->programs[r->current_shader]);
-	// @Todo: Set global Uniforms here (time, camera, etc.)
+	// @Todo: Set global Uniforms here (time, projection, etc.)
 }
 
 void renderer_draw(Renderer* r) {

@@ -21,8 +21,10 @@ pub fn build(b: *std.Build) void {
     exe.addIncludePath("deps/cglm/include");
 
     b.installBinFile("deps/Hack Regular Nerd Font Complete.ttf", "Hack Regular Nerd Font Complete.ttf");
-    b.installBinFile("shaders/color.frag", "color.frag");
+    // @Todo: grab all of these with get_filepaths or sumn
     b.installBinFile("shaders/default.vert", "default.vert");
+    b.installBinFile("shaders/color.frag", "color.frag");
+    b.installBinFile("shaders/text.frag", "text.frag");
 
     const run_cmd = exe.run();
     run_cmd.step.dependOn(b.getInstallStep());

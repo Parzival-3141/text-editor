@@ -3,6 +3,7 @@
 
 #include <stdlib.h>
 #include "err_utils.h"
+#include "font.h"
 
 #define LIST_APPEND(list_type, list_ptr, item)                                                                          \
 	do {                                                                                                                \
@@ -28,6 +29,7 @@ typedef struct {
 typedef struct {
 	Data data;
 	size_t cursor;
+	Font font;
 } Editor;
 
 void Editor_InsertChar(Editor* e, char c);

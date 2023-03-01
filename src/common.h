@@ -3,6 +3,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <cglm/cglm.h>
 
 #define UNIMPLEMENTED(...)                                                      \
     do {                                                                        \
@@ -21,8 +22,11 @@
 #define RGBA_NORMALIZE(r, g, b, a) r/255.0, g/255.0, b/255.0, a/255.0
 #define ARRAYLEN(a) sizeof(a)/sizeof(a[0])
 
-#define PI 3.14159265359
-#define RADIANS(a) a * (PI / 180.0)
+#define RADIANS(a) a * (GLM_PI / 180.0)
+
+#define VEC2(x, y) (vec2){x, y}
+#define IVEC2(x, y) (ivec2){x, y}
+#define VEC4(x, y, z, w) (vec4){x, y, z, w}
 
 typedef unsigned int  u32;
 typedef unsigned char u8;
