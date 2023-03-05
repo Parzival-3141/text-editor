@@ -39,4 +39,6 @@ void Editor_Delete(Editor* e);
 void Editor_MoveCursorLeft(Editor* e);
 void Editor_MoveCursorRight(Editor* e);
 
+void Editor_GetCursorScreenPos(Editor* e, vec2 start_pos, float scale, vec2 cursor_pos);
+
 #endif // EDITOR_H_

@@ -1,3 +1,5 @@
+// @Todo: use a 2d projection matrix so I can use a better coordinate system (like pixels)
+
 #include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
@@ -22,6 +24,73 @@
 #define DEFAULT_FONT_NAME "Hack Regular Nerd Font Complete.ttf"
 
 #define TEST_TXT "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.\nUt enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.\nDuis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.\nExcepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
+
+void draw_character(Font* f, Renderer* r, const char c, vec2 pos, float scale, vec4 color) {
+	renderer_set_shader(r, TEXT_SHADER);
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, f->atlas);
+	{
+		GlyphInfo* gi = &f->glyphs[(int)c];
+
+		vec2 uv_origin;
+		vec2 uv_size;
+
+		glm_vec2(VEC2(gi->u, gi->size[1] / (float)f->atlas_height), uv_origin);
+		glm_vec2_div(
+			VEC2(gi->size[0], gi->size[1]), 
+			VEC2(f->atlas_width, -f->atlas_height), 
+			uv_size
+		);
+
+		vec2 area;
+		glm_vec2_scale(VEC2(gi->size[0], gi->size[1]), scale, area);
+		renderer_image_rect(r, pos, area, color, uv_origin, uv_size);
+	}
+
+	renderer_draw(r);
+}
+
+void draw_text(Font* f, Renderer* r, const char* text, vec2 pos, float scale, vec4 color) {
+	renderer_set_shader(r, TEXT_SHADER);
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, f->atlas);
+
+	vec2 glyph_pos;
+	vec2 pen_pos;
+	glm_vec2_copy(pos, pen_pos);
+
+	int len = strlen(text);
+	for (int i = 0; i < len; ++i)
+	{
+		GlyphInfo* gi = &f->glyphs[(int)text[i]];
+		// @Todo: don't render glyphless characters (i.e. space, newline, etc.)
+		// @Todo: move pen down for new-lines
+
+		glyph_pos[0] = pen_pos[0] + gi->bearing[0] * scale;
+		glyph_pos[1] = pen_pos[1] - (gi->size[1] - gi->bearing[1]) * scale;
+
+		vec2 area;
+		glm_vec2_scale(VEC2(gi->size[0], gi->size[1]), scale, area);
+
+		vec2 uv_origin;
+		vec2 uv_size;
+
+		glm_vec2(VEC2(gi->u, gi->size[1] / (float)f->atlas_height), uv_origin);
+		glm_vec2_div(
+			VEC2(gi->size[0], gi->size[1]), 
+			VEC2(f->atlas_width, -f->atlas_height), 
+			uv_size
+		);
+
+		renderer_image_rect(r, glyph_pos, area, color, uv_origin, uv_size);
+		pen_pos[0] += gi->advance * scale;
+	}
+
+	renderer_draw(r);
+}
+
 
 Editor editor = {0};
 Renderer* renderer = &(Renderer){0};
@@ -69,7 +138,8 @@ int main(int argc, char* argv[]) {
 	create_font_atlas(&editor.font, face);
 	FT_Done_Face(face);
 
-	// LIST_APPEND(Data, &editor.data, '\0');
+	// Initialize with 0 so text renderer doesn't crash
+	LIST_APPEND(Data, &editor.data, '\0');
 
 	renderer_init(renderer);
 
@@ -94,7 +164,13 @@ int main(int argc, char* argv[]) {
 						
 						case SDLK_F1: { 
 							renderer->draw_wireframe = !renderer->draw_wireframe;
-							glPolygonMode(GL_FRONT_AND_BACK, renderer->draw_wireframe ? GL_LINE : GL_FILL);
+							if(renderer->draw_wireframe) {
+								glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+								glDisable(GL_BLEND);
+							} else {
+								glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+								glEnable(GL_BLEND);
+							}
 						} break;
 
 						case SDLK_F2: { 
@@ -127,6 +203,8 @@ int main(int argc, char* argv[]) {
 		glClearColor(0.5, 0.5, 0.5, 1);
 		glClear(GL_COLOR_BUFFER_BIT);
 
+		glm_ortho(0, renderer->window_width, 0, renderer->window_height, 0, 1, renderer->projection);
+
 		// color shape stuff
 		{
 			renderer_set_shader(renderer, COLOR_SHADER);
@@ -136,66 +214,47 @@ int main(int argc, char* argv[]) {
 			vec4 b = {0, 0, 1, 1};
 			vec2 uv = {0};
 
-			renderer_triangle(renderer, VEC2(-1, -0.5), VEC2(0.5, -1), VEC2(-0.5, 1), r, g, b, uv, uv, uv);
+			int w = renderer->window_width;
+			int h = renderer->window_height;
 
-			renderer_quad(renderer, VEC2(-0.75, -0.75), VEC2(0.75, -0.75), VEC2(-0.75, 0.75), VEC2(0.75, 0.75),
+			renderer_triangle(renderer, VEC2(0.5 * w, 0), VEC2(w, 0.5 * h), VEC2(0.2 * w, h), r, g, b, uv, uv, uv);
+
+			renderer_quad(renderer, VEC2(0.25 * w, 0.25 * h), VEC2(0.75 * w, 0.25 * h), VEC2(0.25 * w, 0.75 * h), VEC2(0.75 * w, 0.75 * h),
 									 GLM_VEC4_BLACK, r, g, b, VEC2(0,0), VEC2(1,0), VEC2(0,1), VEC2(1,1));
 
-			renderer_triangle(renderer, VEC2(-0.5, -0.5), VEC2(0.5, -0.5), VEC2(0, 0.5), r, g, b, VEC2(0,0), VEC2(1,0), VEC2(0, 1));
+			renderer_triangle(renderer, VEC2(0.333 * w, 0.333 * h), VEC2(0.333 * 2 * w, 0.333 * h), VEC2(0.5 * w, 0.333	* 2 * h), r, g, b, VEC2(0,0), VEC2(1,0), VEC2(0, 1));
 
-			renderer_solid_rect_centered(renderer, VEC2(0, 0), VEC2(0.15, 0.02), GLM_VEC4_ONE);
-			renderer_solid_rect_centered(renderer, VEC2(0, 0), VEC2(0.02, 0.15), GLM_VEC4_ONE);
+			renderer_solid_rect_centered(renderer, VEC2(w/2, h/2), VEC2(75, 10), GLM_VEC4_ONE);
+			renderer_solid_rect_centered(renderer, VEC2(w/2, h/2), VEC2(10, 75), GLM_VEC4_ONE);
 			
-			renderer_solid_rect(renderer, VEC2(-1.00, -1.00), VEC2(0.25, 0.12), GLM_VEC4_BLACK);
-			renderer_solid_rect(renderer, VEC2(-1.00, -1.00), VEC2(0.12, 0.25), GLM_VEC4_BLACK);
+			renderer_solid_rect(renderer, VEC2(0.00, 0.00), VEC2(0.25 * w, 0.12 * h), GLM_VEC4_BLACK);
+			renderer_solid_rect(renderer, VEC2(0.00, 0.00), VEC2(0.12 * w, 0.25 * h), GLM_VEC4_BLACK);
 			
-			renderer_solid_rect(renderer, VEC2( 0.75, -1.00), VEC2(0.25, 0.12), r);
-			renderer_solid_rect(renderer, VEC2( 0.88, -1.00), VEC2(0.12, 0.25), r);
+			renderer_solid_rect(renderer, VEC2(0.75 * w, 0.00), VEC2(0.25 * w, 0.12 * h), r);
+			renderer_solid_rect(renderer, VEC2(0.88 * w, 0.00), VEC2(0.12 * w, 0.25 * h), r);
 			
-			renderer_solid_rect(renderer, VEC2(-1.00,  0.88), VEC2(0.25, 0.12), g);
-			renderer_solid_rect(renderer, VEC2(-1.00,  0.75), VEC2(0.12, 0.25), g);
+			renderer_solid_rect(renderer, VEC2(0.00, 0.88 * h), VEC2(0.25 * w, 0.12 * h), g);
+			renderer_solid_rect(renderer, VEC2(0.00, 0.75 * h), VEC2(0.12 * w, 0.25 * h), g);
 			
-			renderer_solid_rect(renderer, VEC2( 0.75,  0.88), VEC2(0.25, 0.12), b);
-			renderer_solid_rect(renderer, VEC2( 0.88,  0.75), VEC2(0.12, 0.25), b);
+			renderer_solid_rect(renderer, VEC2(0.75 * w, 0.88 * h), VEC2(0.25 * w, 0.12 * h), b);
+			renderer_solid_rect(renderer, VEC2(0.88 * w, 0.75 * h), VEC2(0.12 * w, 0.25 * h), b);
 			
 			renderer_draw(renderer);
 		}
 
-		// @Todo: abstract all this into a render_text function 
-		renderer_set_shader(renderer, TEXT_SHADER);
+		draw_character(&editor.font, renderer, 'h', VEC2(0, 0), 0.01, GLM_VEC4_ONE);
+		draw_character(&editor.font, renderer, 'i', VEC2( 0, 0), 0.01, GLM_VEC4_ONE);
 
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, editor.font.atlas);
-		{
-			GlyphInfo* gi = &editor.font.glyphs['h'];
+		draw_text(&editor.font, renderer, editor.data.items, VEC2(0, renderer->window_height - FONT_SIZE), 0.5, GLM_VEC4_ONE);
+		draw_text(&editor.font, renderer, TEST_TXT, VEC2(0, renderer->window_height - FONT_SIZE * 2), 0.5, GLM_VEC4_ONE);
+		
+		// @Todo: maybe rework cursor rendering. Add flashing too
+		vec2 cursor_pos;
+		Editor_GetCursorScreenPos(&editor, VEC2(0, renderer->window_height - FONT_SIZE), 0.5, cursor_pos);
+		cursor_pos[1] -= editor.font.atlas_height * 0.05;
 
-			vec2 uv_origin;
-			vec2 uv_size;
-
-			glm_vec2(VEC2(gi->u, gi->size[1] / (float)editor.font.atlas_height), uv_origin);
-			glm_vec2_div(
-				VEC2(gi->size[0], gi->size[1]), 
-				VEC2(editor.font.atlas_width, -editor.font.atlas_height), 
-				uv_size
-			);
-
-			renderer_image_rect(renderer, VEC2(-1,-1), VEC2(0.9, 0.9), GLM_VEC4_ONE, uv_origin, uv_size);
-		}
-		{
-			GlyphInfo* gi = &editor.font.glyphs['i'];
-
-			vec2 uv_origin;
-			vec2 uv_size;
-
-			glm_vec2(VEC2(gi->u, gi->size[1] / (float)editor.font.atlas_height), uv_origin);
-			glm_vec2_div(
-				VEC2(gi->size[0], gi->size[1]), 
-				VEC2(editor.font.atlas_width, -editor.font.atlas_height), 
-				uv_size
-			);
-
-			renderer_image_rect(renderer, VEC2(0,-1), VEC2(0.9, 0.9), GLM_VEC4_ONE, uv_origin, uv_size);
-		}
+		renderer_set_shader(renderer, COLOR_SHADER);
+		renderer_solid_rect(renderer, cursor_pos, VEC2(FONT_SIZE * 0.09, editor.font.atlas_height * 0.5), GLM_VEC4_ONE);
 		renderer_draw(renderer);
 
 		SDL_GL_SwapWindow(window);
@@ -211,6 +270,3 @@ int main(int argc, char* argv[]) {
 	SDL_Quit();
 	return 0;
 }
-
-
-// @Todo: use a 2d projection matrix so I can use a better coordinate system (like pixels)

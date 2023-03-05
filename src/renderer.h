@@ -28,6 +28,8 @@ typedef struct {
 	GLuint programs[NUM_SHADERS];
 	Shader current_shader;
 
+	mat4 projection;
+
 	float window_width, window_height;
 	bool draw_wireframe;
 } Renderer;

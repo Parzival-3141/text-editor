@@ -53,3 +53,15 @@ void Editor_MoveCursorRight(Editor* e) {
 		e->cursor++;
 	}
 }
+
+void Editor_GetCursorScreenPos(Editor* e, vec2 start_pos, float scale, vec2 cursor_pos) {
+	vec2 offset = {0,0};
+
+	for (size_t i = 0; i < e->cursor; ++i)
+	{
+		GlyphInfo* gi = &e->font.glyphs[(int)e->data.items[i]];
+		offset[0] += gi->advance * scale;
+	}
+
+	glm_vec2_add(start_pos, offset, cursor_pos);
+}

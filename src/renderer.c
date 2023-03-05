@@ -7,6 +7,7 @@
 void renderer_init(Renderer* r) {
 	r->window_width = WINDOW_START_WIDTH;
 	r->window_height = WINDOW_START_HEIGHT;
+	
 
 	glGenVertexArrays(1, &r->vao);
 	glBindVertexArray(r->vao);
@@ -68,6 +69,7 @@ void renderer_set_shader(Renderer* r, Shader shader) {
 	r->current_shader = shader;
 	glUseProgram(r->programs[r->current_shader]);
 	// @Todo: Set global Uniforms here (time, projection, etc.)
+	glue_set_uniform_mat4(r->programs[r->current_shader], "projection", r->projection);
 }
 
 void renderer_draw(Renderer* r) {
