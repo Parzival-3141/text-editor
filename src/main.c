@@ -1,5 +1,3 @@
-// @Todo: use a 2d projection matrix so I can use a better coordinate system (like pixels)
-
 #include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
@@ -51,6 +49,11 @@ void draw_character(Font* f, Renderer* r, const char c, vec2 pos, float scale, v
 	renderer_draw(r);
 }
 
+// @Todo: render the cursor in a more correct fashion, see freetype docs
+// @Todo: save line seperation for rendering newlines
+// @Todo: track newlines, up/down and home/end keys
+
+// @Todo: figure out how to architect the text rendering better
 void draw_text(Font* f, Renderer* r, const char* text, vec2 pos, float scale, vec4 color) {
 	renderer_set_shader(r, TEXT_SHADER);
 
@@ -86,6 +89,10 @@ void draw_text(Font* f, Renderer* r, const char* text, vec2 pos, float scale, ve
 
 		renderer_image_rect(r, glyph_pos, area, color, uv_origin, uv_size);
 		pen_pos[0] += gi->advance * scale;
+		if(text[i] == '\n') {
+			pen_pos[0] = pos[0];
+			pen_pos[1] -= FONT_SIZE * scale;
+		}
 	}
 
 	renderer_draw(r);
@@ -206,6 +213,7 @@ int main(int argc, char* argv[]) {
 		glm_ortho(0, renderer->window_width, 0, renderer->window_height, 0, 1, renderer->projection);
 
 		// color shape stuff
+		#if 0
 		{
 			renderer_set_shader(renderer, COLOR_SHADER);
 
@@ -241,6 +249,7 @@ int main(int argc, char* argv[]) {
 			
 			renderer_draw(renderer);
 		}
+		#endif
 
 		draw_character(&editor.font, renderer, 'h', VEC2(0, 0), 0.01, GLM_VEC4_ONE);
 		draw_character(&editor.font, renderer, 'i', VEC2( 0, 0), 0.01, GLM_VEC4_ONE);

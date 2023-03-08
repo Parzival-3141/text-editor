@@ -61,6 +61,11 @@ void Editor_GetCursorScreenPos(Editor* e, vec2 start_pos, float scale, vec2 curs
 	{
 		GlyphInfo* gi = &e->font.glyphs[(int)e->data.items[i]];
 		offset[0] += gi->advance * scale;
+
+		if(e->data.items[i] == '\n') {
+			offset[0] = start_pos[0];
+			offset[1] -= 42 * scale; // @Todo: hardcoded temporarily!!!
+		}
 	}
 
 	glm_vec2_add(start_pos, offset, cursor_pos);
