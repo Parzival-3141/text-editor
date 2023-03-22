@@ -71,7 +71,7 @@ int main(int argc, char* argv[]) {
 	FT_Done_Face(face);
 
 	// Initialize with 0 so text renderer doesn't crash
-	LIST_APPEND(Data, &editor.data, '\0');
+	LIST_APPEND(TextArray, &editor.data, '\0');
 
 	renderer_init(renderer);
 
@@ -113,9 +113,13 @@ int main(int argc, char* argv[]) {
 						case SDLK_TAB: for(int i=0; i<4; i++) Editor_InsertChar(&editor, ' '); break;
 						case SDLK_0: if(SDL_GetModState() & KMOD_CTRL) text_scale = 0.5; break;
 
-						// @Todo: make cursor visible
-						case SDLK_LEFT: Editor_MoveCursorLeft(&editor); break;
+						case SDLK_UP:    Editor_MoveCursorUp(&editor);    break;
+						case SDLK_DOWN:  Editor_MoveCursorDown(&editor);  break;
+						case SDLK_LEFT:  Editor_MoveCursorLeft(&editor);  break;
 						case SDLK_RIGHT: Editor_MoveCursorRight(&editor); break;
+
+						case SDLK_HOME: Editor_MoveCursorToLineStart(&editor); break;
+						case SDLK_END:  Editor_MoveCursorToLineEnd(&editor); break;
 						
 						case SDLK_F1: { 
 							renderer->draw_wireframe = !renderer->draw_wireframe;

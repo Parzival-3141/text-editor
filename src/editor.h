@@ -18,26 +18,50 @@
 
 
 
-#define Data_INIT_CAPACITY 256
+#define TextArray_INIT_CAPACITY 64
+#define LineArray_INIT_CAPACITY 16
 
 typedef struct {
 	char* items;
 	size_t count;
 	size_t capacity;
-} Data;
+} TextArray;
 
 typedef struct {
-	Data data;
-	size_t cursor;
+	size_t start;
+	size_t end;
+} Line;
+
+typedef struct {
+	Line* items;
+	size_t count;
+	size_t capacity;
+} LineArray;
+
+typedef struct {
+	TextArray data;
+	LineArray lines;
+
 	Font font;
+
+	size_t cursor;
+	size_t saved_cursor_max_column;
 } Editor;
 
 void Editor_InsertChar(Editor* e, char c);
 void Editor_Backspace(Editor* e);
 void Editor_Delete(Editor* e);
 
+void Editor_MoveCursorUp(Editor* e);
+void Editor_MoveCursorDown(Editor* e);
 void Editor_MoveCursorLeft(Editor* e);
 void Editor_MoveCursorRight(Editor* e);
+
+void Editor_MoveCursorToLineStart(Editor* e);
+void Editor_MoveCursorToLineEnd(Editor* e);  
+
+void Editor_RecalculateLines(Editor* e);
+size_t Editor_GetLine(Editor* e, size_t cursor_index);
 
 void Editor_GetCursorScreenPos(Editor* e, vec2 start_pos, float scale, vec2 cursor_pos);
 
