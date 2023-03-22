@@ -75,6 +75,14 @@ int main(int argc, char* argv[]) {
 
 	renderer_init(renderer);
 
+	unsigned int current_ticks = SDL_GetTicks();
+	unsigned int last_ticks = current_ticks;
+
+	unsigned int cursor_blink_timer = 0;
+	unsigned int cursor_blink_pause = 0;
+	float text_scale = 0.5;
+
+
 	bool quit = false;
 	SDL_Event event = {0};
 	while(!quit) {
@@ -84,11 +92,26 @@ int main(int argc, char* argv[]) {
 					quit = true;
 				} break;
 
+				case SDL_MOUSEWHEEL: {
+					SDL_Keymod kmod = SDL_GetModState();
+					if (kmod & KMOD_CTRL) {
+						if(event.wheel.y > 0) {
+							text_scale += 0.1;
+						} else if(event.wheel.y < 0) {
+							text_scale -= 0.1;
+						}
+					}
+				} break;
+
 				case SDL_KEYDOWN: {
+					cursor_blink_pause = 500;
 					switch(event.key.keysym.sym) {
 						case SDLK_BACKSPACE: Editor_Backspace(&editor); break;
 						case SDLK_RETURN: Editor_InsertChar(&editor, '\n'); break;
 						case SDLK_DELETE: Editor_Delete(&editor); break;
+
+						case SDLK_TAB: for(int i=0; i<4; i++) Editor_InsertChar(&editor, ' '); break;
+						case SDLK_0: if(SDL_GetModState() & KMOD_CTRL) text_scale = 0.5; break;
 
 						// @Todo: make cursor visible
 						case SDLK_LEFT: Editor_MoveCursorLeft(&editor); break;
@@ -113,6 +136,9 @@ int main(int argc, char* argv[]) {
 				} break;
 
 				case SDL_TEXTINPUT: {
+					SDL_Keymod kmod = SDL_GetModState();
+					if(kmod & KMOD_CTRL || kmod & KMOD_ALT) break;
+
 					const char* text = event.text.text;
 					size_t len = strlen(text);
 					for (size_t i = 0; i < len; ++i)
@@ -132,80 +158,53 @@ int main(int argc, char* argv[]) {
 			}
 		}
 
+		current_ticks = SDL_GetTicks();
+		unsigned int dt = current_ticks - last_ticks;
+		last_ticks = current_ticks;
+
+
 		glClearColor(0.4, 0.5, 0.7, 1);
 		glClear(GL_COLOR_BUFFER_BIT);
 
 		glm_ortho(0, renderer->window_width, 0, renderer->window_height, 0, 1, renderer->projection);
+		text_scale = glm_max(0.1, text_scale);
 
-		// color shape stuff
-		#if 0
-		{
-			renderer_set_shader(renderer, COLOR_SHADER);
 
-			vec4 r = {1, 0, 0, 1};
-			vec4 g = {0, 1, 0, 1};
-			vec4 b = {0, 0, 1, 1};
-			vec2 uv = {0};
-
-			int w = renderer->window_width;
-			int h = renderer->window_height;
-
-			renderer_triangle(renderer, VEC2(0.5 * w, 0), VEC2(w, 0.5 * h), VEC2(0.2 * w, h), r, g, b, uv, uv, uv);
-
-			renderer_quad(renderer, VEC2(0.25 * w, 0.25 * h), VEC2(0.75 * w, 0.25 * h), VEC2(0.25 * w, 0.75 * h), VEC2(0.75 * w, 0.75 * h),
-									 GLM_VEC4_BLACK, r, g, b, VEC2(0,0), VEC2(1,0), VEC2(0,1), VEC2(1,1));
-
-			renderer_triangle(renderer, VEC2(0.333 * w, 0.333 * h), VEC2(0.333 * 2 * w, 0.333 * h), VEC2(0.5 * w, 0.333	* 2 * h), r, g, b, VEC2(0,0), VEC2(1,0), VEC2(0, 1));
-
-			renderer_solid_rect_centered(renderer, VEC2(w/2, h/2), VEC2(75, 10), GLM_VEC4_ONE);
-			renderer_solid_rect_centered(renderer, VEC2(w/2, h/2), VEC2(10, 75), GLM_VEC4_ONE);
-			
-			renderer_solid_rect(renderer, VEC2(0.00, 0.00), VEC2(0.25 * w, 0.12 * h), GLM_VEC4_BLACK);
-			renderer_solid_rect(renderer, VEC2(0.00, 0.00), VEC2(0.12 * w, 0.25 * h), GLM_VEC4_BLACK);
-			
-			renderer_solid_rect(renderer, VEC2(0.75 * w, 0.00), VEC2(0.25 * w, 0.12 * h), r);
-			renderer_solid_rect(renderer, VEC2(0.88 * w, 0.00), VEC2(0.12 * w, 0.25 * h), r);
-			
-			renderer_solid_rect(renderer, VEC2(0.00, 0.88 * h), VEC2(0.25 * w, 0.12 * h), g);
-			renderer_solid_rect(renderer, VEC2(0.00, 0.75 * h), VEC2(0.12 * w, 0.25 * h), g);
-			
-			renderer_solid_rect(renderer, VEC2(0.75 * w, 0.88 * h), VEC2(0.25 * w, 0.12 * h), b);
-			renderer_solid_rect(renderer, VEC2(0.88 * w, 0.75 * h), VEC2(0.12 * w, 0.25 * h), b);
-			
-			renderer_draw(renderer);
-		}
-		#endif
-
-		// draw_character(&editor.font, renderer, 'h', VEC2(0, 0), 0.01, GLM_VEC4_ONE);
-		// draw_character(&editor.font, renderer, 'i', VEC2( 0, 0), 0.01, GLM_VEC4_ONE);
-
-		draw_text(&editor.font, renderer, editor.data.items, VEC2(0, renderer->window_height - FONT_SIZE), 0.5, GLM_VEC4_ONE);
-		// draw_text(&editor.font, renderer, TEST_TXT, VEC2(0, renderer->window_height - FONT_SIZE * 2), 0.5, GLM_VEC4_ONE);
+		draw_text(&editor.font, renderer, editor.data.items, VEC2(0, renderer->window_height - FONT_SIZE), text_scale, GLM_VEC4_ONE);
+		// draw_text(&editor.font, renderer, TEST_TXT, VEC2(0, renderer->window_height - FONT_SIZE * 2), text_scale, GLM_VEC4_ONE);
 		
 		// @Todo: render the cursor in a more correct fashion (see freetype docs). Add flashing too.
 		vec2 cursor_pos;
-		Editor_GetCursorScreenPos(&editor, VEC2(0, renderer->window_height - FONT_SIZE), 0.5, cursor_pos);
+		Editor_GetCursorScreenPos(&editor, VEC2(0, renderer->window_height - FONT_SIZE), text_scale, cursor_pos);
 		cursor_pos[1] -= editor.font.atlas_height * 0.05;
 
 		{
 			// new_cam_pos = cursor_pos + (window_size / 2);
-			// cam = lerp(cam, new_cam_pos, 0.1);
+			// cam = lerp(cam, new_cam_pos, cam_speed);
 			vec2 half_window_size;
 			glm_vec2_divs(VEC2(renderer->window_width, renderer->window_height), 2.0, half_window_size);
 
 			vec2 new_cam_pos;
 			glm_vec2_sub(cursor_pos, half_window_size, new_cam_pos);
-			glm_vec2_lerp(renderer->camera_pos, new_cam_pos, 0.1, renderer->camera_pos);
-
-
-			// glm_vec2_copy(cursor_pos, renderer->camera_pos);
-			// renderer->camera_pos[0] -= renderer->window_width / 2;
-			// renderer->camera_pos[1] -= renderer->window_height / 2;
+			glm_vec2_lerp(renderer->camera_pos, new_cam_pos, 0.05, renderer->camera_pos);
 		}
 
-		renderer_set_shader(renderer, COLOR_SHADER);
-		renderer_solid_rect(renderer, cursor_pos, VEC2(FONT_SIZE * 0.09, editor.font.atlas_height * 0.5), GLM_VEC4_ONE);
-		renderer_draw(renderer);
+		if(cursor_blink_pause > 0) {
+			cursor_blink_timer = 400;
+			cursor_blink_pause -= dt;
+		} else {
+			cursor_blink_timer += dt;
+		}
+
+		if(cursor_blink_timer >= 400) {
+			renderer_set_shader(renderer, COLOR_SHADER);
+			renderer_solid_rect(renderer, cursor_pos, VEC2(3, editor.font.atlas_height * text_scale), GLM_VEC4_ONE);
+			renderer_draw(renderer);
+
+			if(cursor_blink_timer >= 1000) {
+				cursor_blink_timer = 0;
+			}
+		}
 
 		SDL_GL_SwapWindow(window);
 		check_gl_err();
