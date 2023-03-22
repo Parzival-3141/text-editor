@@ -8,9 +8,10 @@ out vec4 vertex_color;
 out vec2 tex_coord;
 
 uniform mat4 projection;
+uniform vec2 camera;
 
 void main() {
-	gl_Position = projection * vec4(pos.x, pos.y, 0, 1);
+	gl_Position = projection * vec4(pos.x - camera.x, pos.y - camera.y, 0, 1);
 	vertex_color = color;
 	tex_coord = uv;
 }

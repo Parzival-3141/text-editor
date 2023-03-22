@@ -18,6 +18,7 @@ void glue_set_uniform_bool(GLuint shader, const char* name, bool value);
 void glue_set_uniform_int(GLuint shader, const char* name, int value);
 void glue_set_uniform_float(GLuint shader, const char* name, float value);
 
+void glue_set_uniform_vec2(GLuint shader, const char* name, float x, float y);
 void glue_set_uniform_vec3(GLuint shader, const char* name, float x, float y, float z);
 void glue_set_uniform_vec4(GLuint shader, const char* name, float x, float y, float z, float w);
 void glue_set_uniform_mat4(GLuint shader, const char* name, mat4 matrix);

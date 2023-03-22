@@ -1,8 +1,11 @@
+#ifndef RENDERER_H
+#define RENDERER_H
+
 #include <cglm/cglm.h>
 #include <glad.h>
 #include <assert.h>
 
-#define RENDERER_MAX_VERTICES 3*1000
+#define RENDERER_MAX_VERTICES 3*1000 // @Note: kinda arbitrary, maybe look into a better solution?
 static_assert(RENDERER_MAX_VERTICES % 3 == 0, "RENDERER_MAX_VERTICES must be a multiple of 3, since we're rendering triangles.");
 
 #define WINDOW_START_WIDTH 720
@@ -29,6 +32,7 @@ typedef struct {
 	Shader current_shader;
 
 	mat4 projection;
+	vec2 camera_pos;
 
 	float window_width, window_height;
 	bool draw_wireframe;
@@ -58,3 +62,5 @@ void renderer_image_rect_centered(Renderer* r, vec2 position, vec2 area, vec4 co
 
 void renderer_solid_rect(Renderer* r, vec2 position, vec2 area, vec4 color);
 void renderer_solid_rect_centered(Renderer* r, vec2 position, vec2 area, vec4 color);
+
+#endif //RENDERER_H

@@ -1,6 +1,3 @@
-#ifndef RENDERER_H
-#define RENDERER_H 
-
 #include "renderer.h"
 #include "glue.h"
 
@@ -70,6 +67,7 @@ void renderer_set_shader(Renderer* r, Shader shader) {
 	glUseProgram(r->programs[r->current_shader]);
 	// @Todo: Set global Uniforms here (time, projection, etc.)
 	glue_set_uniform_mat4(r->programs[r->current_shader], "projection", r->projection);
+	glue_set_uniform_vec2(r->programs[r->current_shader], "camera", r->camera_pos[0], r->camera_pos[1]);
 }
 
 void renderer_draw(Renderer* r) {
@@ -164,5 +162,3 @@ void renderer_solid_rect_centered(Renderer* r, vec2 position, vec2 area, vec4 co
 	vec2 uv = {0};
 	renderer_image_rect_centered(r, position, area, color, uv, uv);
 }
-
-#endif // RENDERER_H

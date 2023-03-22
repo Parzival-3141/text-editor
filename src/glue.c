@@ -115,6 +115,10 @@ void glue_set_uniform_float(GLuint shader, const char* name, float value) {
 	glUniform1f(glGetUniformLocation(shader, name), value);
 }
 
+void glue_set_uniform_vec2(GLuint shader, const char* name, float x, float y) {
+	glUniform2f(glGetUniformLocation(shader, name), x, y);
+}
+
 void glue_set_uniform_vec3(GLuint shader, const char* name, float x, float y, float z) {
 	glUniform3f(glGetUniformLocation(shader, name), x, y, z);
 }

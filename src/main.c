@@ -15,6 +15,7 @@
 #include "editor.h"
 #include "common.h"
 #include "renderer.h"
+#include "text.h"
 
 #define SDL_COLOR_WHITE (SDL_Color){.r = 255, .g = 255, .b = 255, .a = 255}
 
@@ -22,82 +23,6 @@
 #define DEFAULT_FONT_NAME "Hack Regular Nerd Font Complete.ttf"
 
 #define TEST_TXT "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.\nUt enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.\nDuis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.\nExcepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
-
-void draw_character(Font* f, Renderer* r, const char c, vec2 pos, float scale, vec4 color) {
-	renderer_set_shader(r, TEXT_SHADER);
-
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, f->atlas);
-	{
-		GlyphInfo* gi = &f->glyphs[(int)c];
-
-		vec2 uv_origin;
-		vec2 uv_size;
-
-		glm_vec2(VEC2(gi->u, gi->size[1] / (float)f->atlas_height), uv_origin);
-		glm_vec2_div(
-			VEC2(gi->size[0], gi->size[1]), 
-			VEC2(f->atlas_width, -f->atlas_height), 
-			uv_size
-		);
-
-		vec2 area;
-		glm_vec2_scale(VEC2(gi->size[0], gi->size[1]), scale, area);
-		renderer_image_rect(r, pos, area, color, uv_origin, uv_size);
-	}
-
-	renderer_draw(r);
-}
-
-// @Todo: render the cursor in a more correct fashion, see freetype docs
-// @Todo: save line seperation for rendering newlines
-// @Todo: track newlines, up/down and home/end keys
-
-// @Todo: figure out how to architect the text rendering better
-void draw_text(Font* f, Renderer* r, const char* text, vec2 pos, float scale, vec4 color) {
-	renderer_set_shader(r, TEXT_SHADER);
-
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, f->atlas);
-
-	vec2 glyph_pos;
-	vec2 pen_pos;
-	glm_vec2_copy(pos, pen_pos);
-
-	int len = strlen(text);
-	for (int i = 0; i < len; ++i)
-	{
-		GlyphInfo* gi = &f->glyphs[(int)text[i]];
-		// @Todo: don't render glyphless characters (i.e. space, newline, etc.)
-		// @Todo: move pen down for new-lines
-
-		glyph_pos[0] = pen_pos[0] + gi->bearing[0] * scale;
-		glyph_pos[1] = pen_pos[1] - (gi->size[1] - gi->bearing[1]) * scale;
-
-		vec2 area;
-		glm_vec2_scale(VEC2(gi->size[0], gi->size[1]), scale, area);
-
-		vec2 uv_origin;
-		vec2 uv_size;
-
-		glm_vec2(VEC2(gi->u, gi->size[1] / (float)f->atlas_height), uv_origin);
-		glm_vec2_div(
-			VEC2(gi->size[0], gi->size[1]), 
-			VEC2(f->atlas_width, -f->atlas_height), 
-			uv_size
-		);
-
-		renderer_image_rect(r, glyph_pos, area, color, uv_origin, uv_size);
-		pen_pos[0] += gi->advance * scale;
-		if(text[i] == '\n') {
-			pen_pos[0] = pos[0];
-			pen_pos[1] -= FONT_SIZE * scale;
-		}
-	}
-
-	renderer_draw(r);
-}
-
 
 Editor editor = {0};
 Renderer* renderer = &(Renderer){0};
@@ -207,7 +132,7 @@ int main(int argc, char* argv[]) {
 			}
 		}
 
-		glClearColor(0.5, 0.5, 0.5, 1);
+		glClearColor(0.4, 0.5, 0.7, 1);
 		glClear(GL_COLOR_BUFFER_BIT);
 
 		glm_ortho(0, renderer->window_width, 0, renderer->window_height, 0, 1, renderer->projection);
@@ -251,16 +176,32 @@ int main(int argc, char* argv[]) {
 		}
 		#endif
 
-		draw_character(&editor.font, renderer, 'h', VEC2(0, 0), 0.01, GLM_VEC4_ONE);
-		draw_character(&editor.font, renderer, 'i', VEC2( 0, 0), 0.01, GLM_VEC4_ONE);
+		// draw_character(&editor.font, renderer, 'h', VEC2(0, 0), 0.01, GLM_VEC4_ONE);
+		// draw_character(&editor.font, renderer, 'i', VEC2( 0, 0), 0.01, GLM_VEC4_ONE);
 
 		draw_text(&editor.font, renderer, editor.data.items, VEC2(0, renderer->window_height - FONT_SIZE), 0.5, GLM_VEC4_ONE);
-		draw_text(&editor.font, renderer, TEST_TXT, VEC2(0, renderer->window_height - FONT_SIZE * 2), 0.5, GLM_VEC4_ONE);
+		// draw_text(&editor.font, renderer, TEST_TXT, VEC2(0, renderer->window_height - FONT_SIZE * 2), 0.5, GLM_VEC4_ONE);
 		
-		// @Todo: maybe rework cursor rendering. Add flashing too
+		// @Todo: render the cursor in a more correct fashion (see freetype docs). Add flashing too.
 		vec2 cursor_pos;
 		Editor_GetCursorScreenPos(&editor, VEC2(0, renderer->window_height - FONT_SIZE), 0.5, cursor_pos);
 		cursor_pos[1] -= editor.font.atlas_height * 0.05;
+
+		{
+			// new_cam_pos = cursor_pos + (window_size / 2);
+			// cam = lerp(cam, new_cam_pos, 0.1);
+			vec2 half_window_size;
+			glm_vec2_divs(VEC2(renderer->window_width, renderer->window_height), 2.0, half_window_size);
+
+			vec2 new_cam_pos;
+			glm_vec2_sub(cursor_pos, half_window_size, new_cam_pos);
+			glm_vec2_lerp(renderer->camera_pos, new_cam_pos, 0.1, renderer->camera_pos);
+
+
+			// glm_vec2_copy(cursor_pos, renderer->camera_pos);
+			// renderer->camera_pos[0] -= renderer->window_width / 2;
+			// renderer->camera_pos[1] -= renderer->window_height / 2;
+		}
 
 		renderer_set_shader(renderer, COLOR_SHADER);
 		renderer_solid_rect(renderer, cursor_pos, VEC2(FONT_SIZE * 0.09, editor.font.atlas_height * 0.5), GLM_VEC4_ONE);

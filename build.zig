@@ -4,8 +4,6 @@ pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
 
-    b.prominent_compile_errors = true;
-
     const exe = b.addExecutable(.{ .name = "wheel", .target = target, .optimize = optimize });
     exe.linkLibC();
     exe.install();
