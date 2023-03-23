@@ -112,7 +112,7 @@ size_t Editor_GetLine(Editor* e, size_t cursor_index) {
 		return i;
 	}
 
-	UNREACHABLE("cursor out of bounds");
+	UNREACHABLE("lines.count == 0 (Did you forget to call Editor_RecalculateLines at least once before?)"); 
 	return 0;
 }
 
@@ -145,7 +145,7 @@ void Editor_GetCursorScreenPos(Editor* e, vec2 start_pos, float scale, vec2 curs
 
 		if(e->data.items[i] == '\n') {
 			offset[0] = start_pos[0];
-			offset[1] -= 42 * scale; // @Todo: hardcoded temporarily!!!
+			offset[1] -= 42 * scale; // @Todo: FONT_SIZE hardcoded! Fix me!
 		}
 	}
 

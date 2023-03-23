@@ -9,9 +9,11 @@ void create_font_atlas(Font* f, FT_Face face) {
 	unsigned int width = 0;
 	unsigned int height = 0;
 
+	FT_Int32 load_flags = FT_LOAD_RENDER | FT_LOAD_TARGET_(FT_RENDER_MODE_SDF);
+
 	for (int i = 32; i < 128; ++i)
 	{
-		if(FT_Load_Char(face, i, FT_LOAD_RENDER)) {
+		if(FT_Load_Char(face, i, load_flags)) {
 			fprintf(stderr, "FREETYPE ERROR: Loading character %c failed\n", i);
 			continue;
 		}
@@ -42,7 +44,8 @@ void create_font_atlas(Font* f, FT_Face face) {
 	int xpos = 0;
 	for (int i = 32; i < 128; ++i)
 	{
-		if(FT_Load_Char(face, i, FT_LOAD_RENDER)) continue;
+		if(FT_Load_Char(face, i, load_flags)) continue;
+		// if(FT_Render_Glyph(g, FT_RENDER_MODE_NORMAL)) continue;
 
 		glTexSubImage2D(GL_TEXTURE_2D, 0, xpos, GLYPH_PADDING, g->bitmap.width, g->bitmap.rows, 
 										GL_RED, GL_UNSIGNED_BYTE, g->bitmap.buffer);

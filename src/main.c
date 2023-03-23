@@ -19,6 +19,7 @@
 
 #define SDL_COLOR_WHITE (SDL_Color){.r = 255, .g = 255, .b = 255, .a = 255}
 
+// @Todo: clean up and standardize font/text sizing
 #define FONT_SIZE 42
 #define DEFAULT_FONT_NAME "Hack Regular Nerd Font Complete.ttf"
 
@@ -40,6 +41,9 @@ int main(int argc, char* argv[]) {
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
 	
+	// CheckSDLError(SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1));
+	// CheckSDLError(SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 2));
+	
 	SDL_Window* window = CheckSDLPtr(SDL_CreateWindow("Wheel", 
 		SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 
 		WINDOW_START_WIDTH, WINDOW_START_HEIGHT, 
@@ -50,6 +54,7 @@ int main(int argc, char* argv[]) {
 	gladLoadGLLoader((GLADloadproc)SDL_GL_GetProcAddress);
 	
 	glEnable(GL_BLEND);
+	// glEnable(GL_MULTISAMPLE);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glViewport(0, 0, WINDOW_START_WIDTH, WINDOW_START_HEIGHT);
 	
@@ -66,12 +71,16 @@ int main(int argc, char* argv[]) {
 	free(default_font_path);
 
 	FT_Set_Pixel_Sizes(face, 0, FONT_SIZE);
-
-	create_font_atlas(&editor.font, face);
+	{
+		uint32_t start = SDL_GetTicks();
+		create_font_atlas(&editor.font, face); // @Todo: investigate if the SDF rendering can be optimized
+		printf("create_font_atlas: %d ms\n", SDL_GetTicks() - start);
+	}
 	FT_Done_Face(face);
 
 	// Initialize with 0 so text renderer doesn't crash
 	LIST_APPEND(TextArray, &editor.data, '\0');
+	Editor_RecalculateLines(&editor);
 
 	renderer_init(renderer);
 
@@ -111,7 +120,7 @@ int main(int argc, char* argv[]) {
 						case SDLK_DELETE: Editor_Delete(&editor); break;
 
 						case SDLK_TAB: for(int i=0; i<4; i++) Editor_InsertChar(&editor, ' '); break;
-						case SDLK_0: if(SDL_GetModState() & KMOD_CTRL) text_scale = 0.5; break;
+						case SDLK_0: if(SDL_GetModState() & KMOD_CTRL) text_scale = 1.0; break;
 
 						case SDLK_UP:    Editor_MoveCursorUp(&editor);    break;
 						case SDLK_DOWN:  Editor_MoveCursorDown(&editor);  break;
@@ -175,7 +184,6 @@ int main(int argc, char* argv[]) {
 
 
 		draw_text(&editor.font, renderer, editor.data.items, VEC2(0, renderer->window_height - FONT_SIZE), text_scale, GLM_VEC4_ONE);
-		// draw_text(&editor.font, renderer, TEST_TXT, VEC2(0, renderer->window_height - FONT_SIZE * 2), text_scale, GLM_VEC4_ONE);
 		
 		// @Todo: render the cursor in a more correct fashion (see freetype docs). Add flashing too.
 		vec2 cursor_pos;
