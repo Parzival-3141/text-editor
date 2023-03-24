@@ -8,7 +8,7 @@
 #define RENDERER_MAX_VERTICES 3*1000 // @Note: kinda arbitrary, maybe look into a better solution?
 static_assert(RENDERER_MAX_VERTICES % 3 == 0, "RENDERER_MAX_VERTICES must be a multiple of 3, since we're rendering triangles.");
 
-#define WINDOW_START_WIDTH 720
+#define WINDOW_START_WIDTH 1280
 #define WINDOW_START_HEIGHT 720
 
 typedef struct {

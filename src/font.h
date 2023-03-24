@@ -18,6 +18,7 @@ typedef struct {
 	GLuint atlas;
 	int atlas_width, atlas_height;
 	GlyphInfo glyphs[128]; // Contains all 128 ASCII chars so it wont break on non-alphanumeric ones
+	unsigned int line_spacing; // in pixels
 } Font;
 
 

@@ -45,11 +45,13 @@ void draw_text(Font* f, Renderer* r, const char* text, vec2 pos, float scale, ve
 	vec2 pen_pos;
 	glm_vec2_copy(pos, pen_pos);
 
+	GlyphInfo* gi;
+
 	int len = strlen(text);
 	for (int i = 0; i < len; ++i)
 	{
-		GlyphInfo* gi = &f->glyphs[(int)text[i]];
-		// @Todo: move pen down for new-lines
+		gi = &f->glyphs[(int)text[i]];
+
 		if(!is_whitespace(text[i])) {
 			glyph_pos[0] = pen_pos[0] + gi->bearing[0] * scale;
 			glyph_pos[1] = pen_pos[1] - (gi->size[1] - gi->bearing[1]) * scale;
@@ -60,7 +62,8 @@ void draw_text(Font* f, Renderer* r, const char* text, vec2 pos, float scale, ve
 			vec2 uv_origin;
 			vec2 uv_size;
 
-			
+			// uv_origin = vec2(gi->u, gi->size.y / f->atlas_height)
+			// uv_size = gi->size / vec2(f->atlas_width, -f->atlas_height)
 			glm_vec2(VEC2(gi->u, gi->size[1] / (float)f->atlas_height), uv_origin);
 			glm_vec2_div(
 				VEC2(gi->size[0], gi->size[1]), 
@@ -74,7 +77,7 @@ void draw_text(Font* f, Renderer* r, const char* text, vec2 pos, float scale, ve
 		pen_pos[0] += gi->advance * scale;
 		if(text[i] == '\n') {
 			pen_pos[0] = pos[0];
-			pen_pos[1] -= 42 * scale; // @Todo: FONT_SIZE hardcoded! Fix me!
+			pen_pos[1] -= f->line_spacing * scale; 
 		}
 	}
 

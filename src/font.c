@@ -62,4 +62,5 @@ void create_font_atlas(Font* f, FT_Face face) {
 	f->atlas = texture;
 	f->atlas_width  = width;
 	f->atlas_height = height;
+	f->line_spacing = height/*face->height / 64*/;
 }

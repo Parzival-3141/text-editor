@@ -23,7 +23,7 @@
 #define FONT_SIZE 42
 #define DEFAULT_FONT_NAME "Hack Regular Nerd Font Complete.ttf"
 
-#define TEST_TXT "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.\nUt enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.\nDuis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.\nExcepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
+#define TEST_TXT "1234567890-=\n!@#$%%^&*()_+\nabcdefghijklmnopqrstuvwxyz\nABCDEFGHIJKLMNOPQRSTUVWXYZ\n`[]\\;',./\n~{}|:\"<>?"
 
 Editor editor = {0};
 Renderer* renderer = &(Renderer){0};
@@ -182,13 +182,9 @@ int main(int argc, char* argv[]) {
 		glm_ortho(0, renderer->window_width, 0, renderer->window_height, 0, 1, renderer->projection);
 		text_scale = glm_max(0.1, text_scale);
 
-
-		draw_text(&editor.font, renderer, editor.data.items, VEC2(0, renderer->window_height - FONT_SIZE), text_scale, GLM_VEC4_ONE);
-		
-		// @Todo: render the cursor in a more correct fashion (see freetype docs). Add flashing too.
 		vec2 cursor_pos;
-		Editor_GetCursorScreenPos(&editor, VEC2(0, renderer->window_height - FONT_SIZE), text_scale, cursor_pos);
-		cursor_pos[1] -= editor.font.atlas_height * 0.05;
+		Editor_GetCursorScreenPos(&editor, VEC2(0, 0), text_scale, cursor_pos);
+		cursor_pos[1] -= (editor.font.line_spacing * 0.2) * text_scale; // @Todo: probably a better way to center the cursor depending on the font
 
 		{
 			// new_cam_pos = cursor_pos + (window_size / 2);
@@ -201,6 +197,8 @@ int main(int argc, char* argv[]) {
 			glm_vec2_lerp(renderer->camera_pos, new_cam_pos, 0.05, renderer->camera_pos);
 		}
 
+		draw_text(&editor.font, renderer, editor.data.items, VEC2(0, 0), text_scale, GLM_VEC4_ONE);
+
 		if(cursor_blink_pause > 0) {
 			cursor_blink_timer = 400;
 			cursor_blink_pause -= dt;
@@ -210,7 +208,7 @@ int main(int argc, char* argv[]) {
 
 		if(cursor_blink_timer >= 400) {
 			renderer_set_shader(renderer, COLOR_SHADER);
-			renderer_solid_rect(renderer, cursor_pos, VEC2(3, editor.font.atlas_height * text_scale), GLM_VEC4_ONE);
+			renderer_solid_rect(renderer, cursor_pos, VEC2(3, editor.font.line_spacing * text_scale), GLM_VEC4_ONE);
 			renderer_draw(renderer);
 
 			if(cursor_blink_timer >= 1000) {

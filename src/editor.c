@@ -137,15 +137,16 @@ void Editor_RecalculateLines(Editor* e) {
 
 void Editor_GetCursorScreenPos(Editor* e, vec2 start_pos, float scale, vec2 cursor_pos) {
 	vec2 offset = {0,0};
+	GlyphInfo* gi;
 
 	for (size_t i = 0; i < e->cursor; ++i)
 	{
-		GlyphInfo* gi = &e->font.glyphs[(int)e->data.items[i]];
+		gi = &e->font.glyphs[(int)e->data.items[i]];
 		offset[0] += gi->advance * scale;
 
 		if(e->data.items[i] == '\n') {
 			offset[0] = start_pos[0];
-			offset[1] -= 42 * scale; // @Todo: FONT_SIZE hardcoded! Fix me!
+			offset[1] -= e->font.line_spacing * scale;
 		}
 	}
 
