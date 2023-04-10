@@ -152,3 +152,34 @@ void Editor_GetCursorScreenPos(Editor* e, vec2 start_pos, float scale, vec2 curs
 
 	glm_vec2_add(start_pos, offset, cursor_pos);
 }
+
+void Editor_RenderTextBox(Editor* e, Renderer* r, vec2 start_pos, float scale) {
+	// get area of text box 
+
+	GlyphInfo* gi;
+	vec2 pen_pos = {0,0};
+	
+	float width = 0;
+	float line_height = e->font.line_spacing * scale;
+
+	for (size_t i = 0; i < e->data.count; ++i)
+	{
+		gi = &e->font.glyphs[(int)e->data.items[i]];
+		pen_pos[0] += gi->advance * scale;
+
+		if(pen_pos[0] > width) width = pen_pos[0];
+		if(e->data.items[i] == '\n') {
+			pen_pos[0] = 0;
+			pen_pos[1] -= line_height;
+		}
+	}
+
+	// add margins
+	float margins = line_height * 2.0;
+	vec2 area = {width + margins, pen_pos[1] - margins};
+
+	// render rect
+	renderer_set_shader(r, COLOR_SHADER);
+	renderer_solid_rect(r, VEC2(start_pos[0] - line_height, start_pos[1] + line_height), area, VEC4(0,0,0, 0.25));
+	renderer_draw(r);
+}

@@ -20,7 +20,7 @@
 #define SDL_COLOR_WHITE (SDL_Color){.r = 255, .g = 255, .b = 255, .a = 255}
 
 // @Todo: clean up and standardize font/text sizing
-#define FONT_SIZE 42
+#define FONT_SIZE 32
 #define DEFAULT_FONT_NAME "Hack Regular Nerd Font Complete.ttf"
 
 #define TEST_TXT "1234567890-=\n!@#$%%^&*()_+\nabcdefghijklmnopqrstuvwxyz\nABCDEFGHIJKLMNOPQRSTUVWXYZ\n`[]\\;',./\n~{}|:\"<>?"
@@ -102,25 +102,26 @@ int main(int argc, char* argv[]) {
 				} break;
 
 				case SDL_MOUSEWHEEL: {
-					SDL_Keymod kmod = SDL_GetModState();
-					if (kmod & KMOD_CTRL) {
+					if (SDL_GetModState() & KMOD_CTRL) {
 						if(event.wheel.y > 0) {
 							text_scale += 0.1;
+							// glm_vec2_scale(renderer->camera_pos, 1.1, renderer->camera_pos);
 						} else if(event.wheel.y < 0) {
 							text_scale -= 0.1;
+							// glm_vec2_scale(renderer->camera_pos, 0.9, renderer->camera_pos);
 						}
 					}
 				} break;
 
 				case SDL_KEYDOWN: {
-					cursor_blink_pause = 500;
+					cursor_blink_pause = 100;
 					switch(event.key.keysym.sym) {
 						case SDLK_BACKSPACE: Editor_Backspace(&editor); break;
 						case SDLK_RETURN: Editor_InsertChar(&editor, '\n'); break;
 						case SDLK_DELETE: Editor_Delete(&editor); break;
 
 						case SDLK_TAB: for(int i=0; i<4; i++) Editor_InsertChar(&editor, ' '); break;
-						case SDLK_0: if(SDL_GetModState() & KMOD_CTRL) text_scale = 1.0; break;
+						case SDLK_0: if(SDL_GetModState() & KMOD_CTRL) text_scale = 0.5; break;
 
 						case SDLK_UP:    Editor_MoveCursorUp(&editor);    break;
 						case SDLK_DOWN:  Editor_MoveCursorDown(&editor);  break;
@@ -194,10 +195,12 @@ int main(int argc, char* argv[]) {
 
 			vec2 new_cam_pos;
 			glm_vec2_sub(cursor_pos, half_window_size, new_cam_pos);
-			glm_vec2_lerp(renderer->camera_pos, new_cam_pos, 0.05, renderer->camera_pos);
+			glm_vec2_lerp(renderer->camera_pos, new_cam_pos, 2 * (dt / 1000.0), renderer->camera_pos);
 		}
 
-		draw_text(&editor.font, renderer, editor.data.items, VEC2(0, 0), text_scale, GLM_VEC4_ONE);
+		Editor_RenderTextBox(&editor, renderer, VEC2(0,0), text_scale);
+
+		text_draw(&editor.font, renderer, editor.data.items, VEC2(0, 0), text_scale, GLM_VEC4_ONE);
 
 		if(cursor_blink_pause > 0) {
 			cursor_blink_timer = 400;

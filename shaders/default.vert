@@ -9,6 +9,7 @@ out vec2 tex_coord;
 
 uniform mat4 projection;
 uniform vec2 camera;
+uniform float camera_scale;
 
 void main() {
 	gl_Position = projection * vec4(pos.x - camera.x, pos.y - camera.y, 0, 1);

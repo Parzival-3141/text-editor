@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include "err_utils.h"
 #include "font.h"
+#include "renderer.h"
 
 #define LIST_APPEND(list_type, list_ptr, item)                                                                          \
 	do {                                                                                                                \
@@ -64,5 +65,6 @@ void Editor_RecalculateLines(Editor* e);
 size_t Editor_GetLine(Editor* e, size_t cursor_index);
 
 void Editor_GetCursorScreenPos(Editor* e, vec2 start_pos, float scale, vec2 cursor_pos);
+void Editor_RenderTextBox(Editor* e, Renderer* r, vec2 start_pos, float scale);
 
 #endif // EDITOR_H_
