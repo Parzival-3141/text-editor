@@ -1,5 +1,4 @@
 zig-*
 build/
-deps/SDL2/*
 deps/SDL2_ttf/*
 *.sublime-*

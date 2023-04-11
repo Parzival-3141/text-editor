@@ -72,12 +72,12 @@ fn get_file_paths(b: *std.Build, search_dir: []const u8, extension: ?[]const u8)
 }
 
 fn linkSDL2(b: *std.Build, step: *std.Build.LibExeObjStep) void {
-    step.addIncludePath("deps/SDL2/include/SDL2");
-    step.addLibraryPath("deps/SDL2/lib");
-    step.linkSystemLibraryName("SDL2");
+    step.addIncludePath("deps/SDL2/include");
+    step.addLibraryPath("deps/SDL2");
+    step.linkSystemLibrary("SDL2");
 
     // @Todo: dynamic lib crossplatform support
-    b.installBinFile("deps/SDL2/lib/SDL2.dll", "SDL2.dll");
+    b.installBinFile("deps/SDL2/SDL2.dll", "SDL2.dll");
 }
 
 const glad_path = "deps/glad";
