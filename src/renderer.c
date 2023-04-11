@@ -30,9 +30,9 @@ void renderer_init(Renderer* r) {
 	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Renderer_Vertex), (GLvoid*)offsetof(Renderer_Vertex, uv));
 
 	GLuint shaders[] = {
-		glue_compile_shader_file("default.vert", GL_VERTEX_SHADER),
-		glue_compile_shader_file("color.frag", GL_FRAGMENT_SHADER),
-		glue_compile_shader_file("text.frag", GL_FRAGMENT_SHADER),
+		glue_compile_shader_file("assets/shaders/default.vert", GL_VERTEX_SHADER),
+		glue_compile_shader_file("assets/shaders/color.frag", GL_FRAGMENT_SHADER),
+		glue_compile_shader_file("assets/shaders/text.frag", GL_FRAGMENT_SHADER),
 	};
 
 	for (int i = 0; i < NUM_SHADERS; ++i)
@@ -47,11 +47,11 @@ void renderer_recompile_shaders(Renderer* r) {
 	// @Todo: I don't feel like writing stuff to properly copy files to the working directory
 	// or setup an abstraction for the file paths, so I'm hardcoding it for now. 
 	// Make sure to update this shader array to match the one in renderer_init.
-
+	
 	GLuint shaders[] = {
-		glue_compile_shader_file("../../shaders/default.vert", GL_VERTEX_SHADER),
-		glue_compile_shader_file("../../shaders/color.frag", GL_FRAGMENT_SHADER),
-		glue_compile_shader_file("../../shaders/text.frag", GL_FRAGMENT_SHADER),
+		glue_compile_shader_file("../../assets/shaders/default.vert", GL_VERTEX_SHADER),
+		glue_compile_shader_file("../../assets/shaders/color.frag", GL_FRAGMENT_SHADER),
+		glue_compile_shader_file("../../assets/shaders/text.frag", GL_FRAGMENT_SHADER),
 	};
 
 	GLuint program;
@@ -68,7 +68,7 @@ void renderer_recompile_shaders(Renderer* r) {
 void renderer_set_shader(Renderer* r, Shader shader) {
 	r->current_shader = shader;
 	glUseProgram(r->programs[r->current_shader]);
-	
+
 	// Set global Uniforms here (time, projection, etc.)
 
 	glue_set_uniform_mat4(r->programs[r->current_shader], "projection", r->projection);

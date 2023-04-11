@@ -21,7 +21,7 @@
 
 // @Todo: clean up and standardize font/text sizing
 #define FONT_SIZE 32
-#define DEFAULT_FONT_NAME "Hack Regular Nerd Font Complete.ttf"
+#define DEFAULT_FONT_PATH "assets/Hack Regular Nerd Font Complete.ttf"
 
 #define TEST_TXT "1234567890-=\n!@#$%%^&*()_+\nabcdefghijklmnopqrstuvwxyz\nABCDEFGHIJKLMNOPQRSTUVWXYZ\n`[]\\;',./\n~{}|:\"<>?"
 
@@ -61,13 +61,13 @@ int main(int argc, char* argv[]) {
 
 	// Init FreeType
 	//printf("BasePath: %s\n", common_base_path);
-	char* default_font_path = concat_str(common_base_path, DEFAULT_FONT_NAME);
+	char* default_font_path = concat_str(common_base_path, DEFAULT_FONT_PATH);
 
 	FT_Library ft;
 	CheckFTError(FT_Init_FreeType(&ft), "Could't init library");
 
 	FT_Face face;
-	CheckFTError(FT_New_Face(ft, default_font_path, 0, &face), "Could't open font " DEFAULT_FONT_NAME);
+	CheckFTError(FT_New_Face(ft, default_font_path, 0, &face), "Could't open font " DEFAULT_FONT_PATH);
 	free(default_font_path);
 
 	FT_Set_Pixel_Sizes(face, 0, FONT_SIZE);
