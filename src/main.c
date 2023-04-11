@@ -83,14 +83,15 @@ int main(int argc, char* argv[]) {
 	Editor_RecalculateLines(&editor);
 
 	renderer_init(renderer);
+	// glm_vec2(VEC2(renderer->window_width / 2, renderer->window_height / 2), renderer->camera_pos);
 
 	unsigned int current_ticks = SDL_GetTicks();
 	unsigned int last_ticks = current_ticks;
 
 	unsigned int cursor_blink_timer = 0;
 	unsigned int cursor_blink_pause = 0;
-	float text_scale = 0.5;
 
+	vec2 thingyPos = {0,0}; // @Todo: temp remove
 
 	bool quit = false;
 	SDL_Event event = {0};
@@ -104,29 +105,30 @@ int main(int argc, char* argv[]) {
 				case SDL_MOUSEWHEEL: {
 					if (SDL_GetModState() & KMOD_CTRL) {
 						if(event.wheel.y > 0) {
-							text_scale += 0.1;
-							// glm_vec2_scale(renderer->camera_pos, 1.1, renderer->camera_pos);
+							renderer->camera_zoom += 0.1;
 						} else if(event.wheel.y < 0) {
-							text_scale -= 0.1;
-							// glm_vec2_scale(renderer->camera_pos, 0.9, renderer->camera_pos);
+							renderer->camera_zoom -= 0.1;
 						}
 					}
 				} break;
 
 				case SDL_KEYDOWN: {
 					cursor_blink_pause = 100;
+					SDL_Keymod kmod = SDL_GetModState();
+					bool moveThingy = kmod & KMOD_ALT; // @Todo: temp remove
+
 					switch(event.key.keysym.sym) {
 						case SDLK_BACKSPACE: Editor_Backspace(&editor); break;
 						case SDLK_RETURN: Editor_InsertChar(&editor, '\n'); break;
 						case SDLK_DELETE: Editor_Delete(&editor); break;
 
 						case SDLK_TAB: for(int i=0; i<4; i++) Editor_InsertChar(&editor, ' '); break;
-						case SDLK_0: if(SDL_GetModState() & KMOD_CTRL) text_scale = 0.5; break;
+						case SDLK_0: if(kmod & KMOD_CTRL) renderer->camera_zoom = 1; break;
 
-						case SDLK_UP:    Editor_MoveCursorUp(&editor);    break;
-						case SDLK_DOWN:  Editor_MoveCursorDown(&editor);  break;
-						case SDLK_LEFT:  Editor_MoveCursorLeft(&editor);  break;
-						case SDLK_RIGHT: Editor_MoveCursorRight(&editor); break;
+						case SDLK_UP:    if(moveThingy) thingyPos[1] += 25; else Editor_MoveCursorUp(&editor);    break;
+						case SDLK_DOWN:  if(moveThingy) thingyPos[1] -= 25; else Editor_MoveCursorDown(&editor);  break;
+						case SDLK_LEFT:  if(moveThingy) thingyPos[0] -= 25; else if(kmod & KMOD_CTRL) Editor_MoveCursorToPrevWord(&editor); else Editor_MoveCursorLeft(&editor);  break;
+						case SDLK_RIGHT: if(moveThingy) thingyPos[0] += 25; else if(kmod & KMOD_CTRL) Editor_MoveCursorToNextWord(&editor); else Editor_MoveCursorRight(&editor); break;
 
 						case SDLK_HOME: Editor_MoveCursorToLineStart(&editor); break;
 						case SDLK_END:  Editor_MoveCursorToLineEnd(&editor); break;
@@ -176,31 +178,29 @@ int main(int argc, char* argv[]) {
 		unsigned int dt = current_ticks - last_ticks;
 		last_ticks = current_ticks;
 
-
 		glClearColor(0.4, 0.5, 0.7, 1);
 		glClear(GL_COLOR_BUFFER_BIT);
 
-		glm_ortho(0, renderer->window_width, 0, renderer->window_height, 0, 1, renderer->projection);
-		text_scale = glm_max(0.1, text_scale);
+		renderer->camera_zoom = glm_max(0.2, renderer->camera_zoom);
 
 		vec2 cursor_pos;
-		Editor_GetCursorScreenPos(&editor, VEC2(0, 0), text_scale, cursor_pos);
-		cursor_pos[1] -= (editor.font.line_spacing * 0.2) * text_scale; // @Todo: probably a better way to center the cursor depending on the font
+		Editor_GetCursorScreenPos(&editor, VEC2(0, 0), cursor_pos);
+		cursor_pos[1] -= (editor.font.line_spacing * 0.2); // @Todo: probably a better way to center the cursor depending on the font
 
 		{
-			// new_cam_pos = cursor_pos + (window_size / 2);
+			// @Todo: make camera context aware, zooming in/out to frame text better, and loosely following the cursor
+			// new_cam_pos = cursor_pos * cam_zoom;
 			// cam = lerp(cam, new_cam_pos, cam_speed);
-			vec2 half_window_size;
-			glm_vec2_divs(VEC2(renderer->window_width, renderer->window_height), 2.0, half_window_size);
-
 			vec2 new_cam_pos;
-			glm_vec2_sub(cursor_pos, half_window_size, new_cam_pos);
+			glm_vec2_scale(SDL_GetModState() & KMOD_ALT ? thingyPos : cursor_pos, renderer->camera_zoom, new_cam_pos);
 			glm_vec2_lerp(renderer->camera_pos, new_cam_pos, 2 * (dt / 1000.0), renderer->camera_pos);
+
+			renderer_update_camera_projection(renderer);
 		}
 
-		Editor_RenderTextBox(&editor, renderer, VEC2(0,0), text_scale);
+		Editor_RenderTextBox(&editor, renderer, VEC2(0,0));
 
-		text_draw(&editor.font, renderer, editor.data.items, VEC2(0, 0), text_scale, GLM_VEC4_ONE);
+		text_draw(&editor.font, renderer, editor.data.items, VEC2(0, 0), GLM_VEC4_ONE);
 
 		if(cursor_blink_pause > 0) {
 			cursor_blink_timer = 400;
@@ -211,13 +211,19 @@ int main(int argc, char* argv[]) {
 
 		if(cursor_blink_timer >= 400) {
 			renderer_set_shader(renderer, COLOR_SHADER);
-			renderer_solid_rect(renderer, cursor_pos, VEC2(3, editor.font.line_spacing * text_scale), GLM_VEC4_ONE);
+			renderer_solid_rect(renderer, cursor_pos, VEC2(3, editor.font.line_spacing), GLM_VEC4_ONE);
 			renderer_draw(renderer);
 
 			if(cursor_blink_timer >= 1000) {
 				cursor_blink_timer = 0;
 			}
 		}
+		
+		glm_translate_make(renderer->transform, VEC3(thingyPos[0], thingyPos[1], 0));
+
+		renderer_set_shader(renderer, COLOR_SHADER);
+		renderer_solid_rect(renderer, VEC2(0,0), VEC2(25,25), VEC4(1, 0, 0, 1));
+		renderer_draw(renderer);
 
 		SDL_GL_SwapWindow(window);
 		check_gl_err();

@@ -53,4 +53,7 @@ char* concat_str(const char* s1, const char* s2) {
 	return new_str;
 }
 
-
+bool is_whitespace(const char c) {
+	// ascii codes for whitespace (see: https://www.asciitable.com/)
+	return c == 9 || c == 10 || c == 11 || c == 12 || c == 13 || c == 32;
+}

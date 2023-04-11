@@ -7,8 +7,8 @@ in vec2 tex_coord;
 uniform sampler2D atlas; // Texture0?
 
 void main() {
-	/* frag_color = texture(atlas, tex_coord);
-	return; */
+	// frag_color = texture(atlas, tex_coord);
+	// return;
 	
 	// distance is normalized so that:
 	// 0.0 = fully outside the shape 

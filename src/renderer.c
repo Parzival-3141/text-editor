@@ -4,7 +4,10 @@
 void renderer_init(Renderer* r) {
 	r->window_width = WINDOW_START_WIDTH;
 	r->window_height = WINDOW_START_HEIGHT;
-	
+
+	r->camera_zoom = 1;
+
+	glm_mat4_identity(r->transform);
 
 	glGenVertexArrays(1, &r->vao);
 	glBindVertexArray(r->vao);
@@ -65,9 +68,27 @@ void renderer_recompile_shaders(Renderer* r) {
 void renderer_set_shader(Renderer* r, Shader shader) {
 	r->current_shader = shader;
 	glUseProgram(r->programs[r->current_shader]);
-	// @Todo: Set global Uniforms here (time, projection, etc.)
+	
+	// Set global Uniforms here (time, projection, etc.)
+
 	glue_set_uniform_mat4(r->programs[r->current_shader], "projection", r->projection);
-	glue_set_uniform_vec2(r->programs[r->current_shader], "camera", r->camera_pos[0], r->camera_pos[1]);
+	glue_set_uniform_mat4(r->programs[r->current_shader], "transform", r->transform);
+}
+
+void renderer_update_camera_projection(Renderer* r) {
+	glm_ortho(
+		r->camera_pos[0] - (float)r->window_width  / 2.0, // left
+		r->camera_pos[0] + (float)r->window_width  / 2.0, // right
+      	r->camera_pos[1] - (float)r->window_height / 2.0, // bottom
+      	r->camera_pos[1] + (float)r->window_height / 2.0, // top
+  		0.1, 10,
+      	r->projection);
+
+	mat4 zoom = GLM_MAT4_IDENTITY_INIT;
+	glm_scale_uni(zoom, r->camera_zoom);
+
+	glm_mat4_mul(r->projection, zoom, r->projection);
+
 }
 
 void renderer_draw(Renderer* r) {
@@ -77,8 +98,9 @@ void renderer_draw(Renderer* r) {
 	// draw - glDrawArrays
 	glDrawArrays(GL_TRIANGLES, 0, r->vertex_count);
 
-	// flush - reset r->vertex_count
+	// flush - reset r->vertex_count and r->transform
 	r->vertex_count = 0;
+	glm_mat4_identity(r->transform);
 }
 
 void renderer_vertex(Renderer* r, vec2 pos, vec4 color, vec2 uv) {

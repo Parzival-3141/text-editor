@@ -56,7 +56,7 @@ void Editor_Delete(Editor* e) {
 }
 
 void Editor_MoveCursorUp(Editor* e) {
-	size_t line_num = Editor_GetLine(e, e->cursor);
+	size_t line_num = Editor_GetLineIndex(e, e->cursor);
 	if(line_num >= 1) {
 		size_t column = e->cursor - e->lines.items[line_num].start;
 		e->saved_cursor_max_column = glm_max(column, e->saved_cursor_max_column);
@@ -67,7 +67,7 @@ void Editor_MoveCursorUp(Editor* e) {
 }
 
 void Editor_MoveCursorDown(Editor* e) {
-	size_t line_num = Editor_GetLine(e, e->cursor);
+	size_t line_num = Editor_GetLineIndex(e, e->cursor);
 	if(line_num < e->lines.count - 1) {
 		size_t column = e->cursor - e->lines.items[line_num].start;
 		e->saved_cursor_max_column = glm_max(column, e->saved_cursor_max_column);
@@ -93,15 +93,62 @@ void Editor_MoveCursorRight(Editor* e) {
 
 void Editor_MoveCursorToLineStart(Editor* e) {
 	e->saved_cursor_max_column = 0;
-	e->cursor = e->lines.items[Editor_GetLine(e, e->cursor)].start;
+	e->cursor = e->lines.items[Editor_GetLineIndex(e, e->cursor)].start;
 }
 
 void Editor_MoveCursorToLineEnd(Editor* e) {
 	e->saved_cursor_max_column = 0;
-	e->cursor = e->lines.items[Editor_GetLine(e, e->cursor)].end;
+	e->cursor = e->lines.items[Editor_GetLineIndex(e, e->cursor)].end;
 } 
 
-size_t Editor_GetLine(Editor* e, size_t cursor_index) {
+void Editor_MoveCursorToPrevWord(Editor* e) {
+	if(e->cursor == 0) return;
+
+	size_t endpos = 0;
+	size_t i = e->cursor;
+
+	while (i > 0) {
+		char c0 = e->data.items[i - 1];
+		char c1 = e->data.items[i];
+
+		if(((is_whitespace(c0) && !is_whitespace(c1)) 
+			|| (c0 == '\n')
+			|| (c1 == '\n')) && i != e->cursor) {
+			endpos = i;
+			break;
+		}
+
+		i--;
+	}
+
+	e->cursor = endpos;
+}
+
+void Editor_MoveCursorToNextWord(Editor* e) {
+	if(e->cursor == e->data.count - 1) return;
+
+	size_t row = Editor_GetLineIndex(e, e->cursor);
+	Line line = e->lines.items[row];
+	
+	size_t endpos = e->cursor == line.end && row < e->lines.count - 1 ? line.end + 1 : line.end;
+	bool found_non_whitespace = false;
+
+	for (size_t i = e->cursor; i < line.end; ++i)
+	{
+		char c = e->data.items[i];
+
+		if(found_non_whitespace && is_whitespace(c)) {
+			endpos = i;
+			break;
+		}
+
+		if(!is_whitespace(c)) found_non_whitespace = true;
+	}
+
+	e->cursor = endpos;
+}
+
+size_t Editor_GetLineIndex(Editor* e, size_t cursor_index) {
 	assert(cursor_index < e->data.count);
 
 	for (size_t i = 0; i < e->lines.count; ++i)
@@ -135,37 +182,37 @@ void Editor_RecalculateLines(Editor* e) {
 	LIST_APPEND(LineArray, &e->lines, line);
 }
 
-void Editor_GetCursorScreenPos(Editor* e, vec2 start_pos, float scale, vec2 cursor_pos) {
+void Editor_GetCursorScreenPos(Editor* e, vec2 start_pos, vec2 cursor_pos) {
 	vec2 offset = {0,0};
 	GlyphInfo* gi;
 
 	for (size_t i = 0; i < e->cursor; ++i)
 	{
 		gi = &e->font.glyphs[(int)e->data.items[i]];
-		offset[0] += gi->advance * scale;
+		offset[0] += gi->advance;
 
 		if(e->data.items[i] == '\n') {
 			offset[0] = start_pos[0];
-			offset[1] -= e->font.line_spacing * scale;
+			offset[1] -= e->font.line_spacing;
 		}
 	}
 
 	glm_vec2_add(start_pos, offset, cursor_pos);
 }
 
-void Editor_RenderTextBox(Editor* e, Renderer* r, vec2 start_pos, float scale) {
+void Editor_RenderTextBox(Editor* e, Renderer* r, vec2 start_pos) {
 	// get area of text box 
 
 	GlyphInfo* gi;
 	vec2 pen_pos = {0,0};
 	
 	float width = 0;
-	float line_height = e->font.line_spacing * scale;
+	float line_height = e->font.line_spacing;
 
 	for (size_t i = 0; i < e->data.count; ++i)
 	{
 		gi = &e->font.glyphs[(int)e->data.items[i]];
-		pen_pos[0] += gi->advance * scale;
+		pen_pos[0] += gi->advance;
 
 		if(pen_pos[0] > width) width = pen_pos[0];
 		if(e->data.items[i] == '\n') {

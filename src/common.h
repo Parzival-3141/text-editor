@@ -25,6 +25,7 @@
 #define RADIANS(a) a * (GLM_PI / 180.0)
 
 #define VEC2(x, y) (vec2){x, y}
+#define VEC3(x, y, z) (vec3){x, y, z}
 #define IVEC2(x, y) (ivec2){x, y}
 #define VEC4(x, y, z, w) (vec4){x, y, z, w}
 
@@ -41,5 +42,7 @@ void* check_SDL_ptr(void* ptr);
 
 void* check_ptr(void* ptr, const char* msg_format, ...);
 void* check_alloc(void* ptr, const char* func_name);
+
+bool is_whitespace(const char c);
 
 #endif //_COMMON_H_

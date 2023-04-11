@@ -58,13 +58,16 @@ void Editor_MoveCursorDown(Editor* e);
 void Editor_MoveCursorLeft(Editor* e);
 void Editor_MoveCursorRight(Editor* e);
 
+void Editor_MoveCursorToPrevWord(Editor* e);
+void Editor_MoveCursorToNextWord(Editor* e);
+
 void Editor_MoveCursorToLineStart(Editor* e);
 void Editor_MoveCursorToLineEnd(Editor* e);  
 
 void Editor_RecalculateLines(Editor* e);
-size_t Editor_GetLine(Editor* e, size_t cursor_index);
+size_t Editor_GetLineIndex(Editor* e, size_t cursor_index);
 
-void Editor_GetCursorScreenPos(Editor* e, vec2 start_pos, float scale, vec2 cursor_pos);
-void Editor_RenderTextBox(Editor* e, Renderer* r, vec2 start_pos, float scale);
+void Editor_GetCursorScreenPos(Editor* e, vec2 start_pos, vec2 cursor_pos);
+void Editor_RenderTextBox(Editor* e, Renderer* r, vec2 start_pos);
 
 #endif // EDITOR_H_

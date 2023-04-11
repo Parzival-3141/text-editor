@@ -1,0 +1,26 @@
+File browser
+ - file saving/loading
+ - directory explorer
+
+Ability to open/close text-edit box
+
+
+
+
+Clean up text rendering code
+ - Render the cursor in a more correct fashion, see freetype docs
+ - group things neat and consisely
+
+Utilize screenspace coords and GL projection to cull geometry
+ - When rendering text, we check if the resulting quad's bounding box is within the screen range.
+	If it isn't, we skip rendering the quad and just advance the "pen". 
+
+ - After projection GL will handle any triangles that are partially offscreen, and cull ones that 
+	arent visible entirely.
+
+
+Write String type
+ - Pointer and a length
+ - Write some helper functions like init(?), concat, resize
+
+

@@ -31,8 +31,11 @@ typedef struct {
 	GLuint programs[NUM_SHADERS];
 	Shader current_shader;
 
+	mat4 transform;
 	mat4 projection;
+
 	vec2 camera_pos;
+	float camera_zoom;
 
 	float window_width, window_height;
 	bool draw_wireframe;
@@ -40,6 +43,7 @@ typedef struct {
 
 void renderer_init(Renderer* r);
 void renderer_draw(Renderer* r);
+void renderer_update_camera_projection(Renderer* r);
 
 void renderer_set_shader(Renderer* r, Shader s);
 void renderer_recompile_shaders(Renderer* r);

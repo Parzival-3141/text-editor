@@ -1,20 +1,16 @@
 #include "text.h"
-
-bool text_is_whitespace(const char c) {
-	// ascii codes for whitespace (see: https://www.asciitable.com/)
-	return c == 9 || c == 10 || c == 11 || c == 12 || c == 13 || c == 32;
-}
+#include "common.h"
 
 // @Todo: figure out how to architect the text rendering better
-void text_draw(Font* f, Renderer* r, const char* text, vec2 pos, float scale, vec4 color) {
+void text_draw(Font* f, Renderer* r, const char* text, vec2 pos, vec4 color) {
 	renderer_set_shader(r, TEXT_SHADER);
 
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, f->atlas);
 
 	vec2 glyph_pos;
-	vec2 pen_pos;
-	glm_vec2_copy(pos, pen_pos);
+	vec2 pen_pos = {0};
+	// glm_vec2_copy(pos, pen_pos);
 
 	GlyphInfo* gi;
 
@@ -23,12 +19,9 @@ void text_draw(Font* f, Renderer* r, const char* text, vec2 pos, float scale, ve
 	{
 		gi = &f->glyphs[(int)text[i]];
 
-		if(!text_is_whitespace(text[i])) {
-			glyph_pos[0] = pen_pos[0] + gi->bearing[0] * scale;
-			glyph_pos[1] = pen_pos[1] - (gi->size[1] - gi->bearing[1]) * scale;
-
-			vec2 area;
-			glm_vec2_scale(VEC2(gi->size[0], gi->size[1]), scale, area);
+		if(!is_whitespace(text[i])) {
+			glyph_pos[0] = pen_pos[0] + gi->bearing[0];
+			glyph_pos[1] = pen_pos[1] - (gi->size[1] - gi->bearing[1]);
 
 			vec2 uv_origin;
 			vec2 uv_size;
@@ -42,13 +35,13 @@ void text_draw(Font* f, Renderer* r, const char* text, vec2 pos, float scale, ve
 				uv_size
 			);
 
-			renderer_image_rect(r, glyph_pos, area, color, uv_origin, uv_size);
+			renderer_image_rect(r, glyph_pos, VEC2(gi->size[0], gi->size[1]), color, uv_origin, uv_size);
 		}
 
-		pen_pos[0] += gi->advance * scale;
+		pen_pos[0] += gi->advance;
 		if(text[i] == '\n') {
-			pen_pos[0] = pos[0];
-			pen_pos[1] -= f->line_spacing * scale; 
+			pen_pos[0] = 0; //pos[0];
+			pen_pos[1] -= f->line_spacing; 
 		}
 	}
 

@@ -54,7 +54,7 @@ void create_font_atlas(Font* f, FT_Face face) {
 		gi->advance = g->advance.x >> 6;
 		glm_ivec2(IVEC2(g->bitmap.width, g->bitmap.rows + GLYPH_PADDING), gi->size);
 		glm_ivec2(IVEC2(g->bitmap_left, g->bitmap_top), gi->bearing);
-		gi->u = xpos / (float)width;
+		gi->u = (float)xpos / (float)width;
 
 		xpos += g->bitmap.width + GLYPH_PADDING;
 	}
