@@ -11,13 +11,10 @@
 #include <ft2build.h>
 #include FT_FREETYPE_H
 
-#include "err_utils.h"
 #include "editor.h"
 #include "common.h"
 #include "renderer.h"
 #include "text.h"
-
-#define SDL_COLOR_WHITE (SDL_Color){.r = 255, .g = 255, .b = 255, .a = 255}
 
 // @Todo: clean up and standardize font/text sizing
 #define FONT_SIZE 32
@@ -33,18 +30,18 @@ int main(int argc, char* argv[]) {
 	UNUSED(argv);
 
 	printf("Starting Wheel...\n");
-	common_base_path = CheckSDLPtr(SDL_GetBasePath());
+	common_base_path = check_SDL_ptr(SDL_GetBasePath());
 
 	// Init SDL and OpenGL
-	CheckSDLError(SDL_Init(SDL_INIT_VIDEO));
+	check_SDL_err(SDL_Init(SDL_INIT_VIDEO));
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
 	
-	// CheckSDLError(SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1));
-	// CheckSDLError(SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 2));
+	// check_SDL_err(SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1));
+	// check_SDL_err(SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 2));
 	
-	SDL_Window* window = CheckSDLPtr(SDL_CreateWindow("Wheel", 
+	SDL_Window* window = check_SDL_ptr(SDL_CreateWindow("Wheel", 
 		SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 
 		WINDOW_START_WIDTH, WINDOW_START_HEIGHT, 
 		SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE
@@ -60,14 +57,13 @@ int main(int argc, char* argv[]) {
 	
 
 	// Init FreeType
-	//printf("BasePath: %s\n", common_base_path);
 	char* default_font_path = concat_str(common_base_path, DEFAULT_FONT_PATH);
 
 	FT_Library ft;
-	CheckFTError(FT_Init_FreeType(&ft), "Could't init library");
+	check_FT_err(FT_Init_FreeType(&ft), "Could't init library");
 
 	FT_Face face;
-	CheckFTError(FT_New_Face(ft, default_font_path, 0, &face), "Could't open font " DEFAULT_FONT_PATH);
+	check_FT_err(FT_New_Face(ft, default_font_path, 0, &face), "Could't open font " DEFAULT_FONT_PATH);
 	free(default_font_path);
 
 	FT_Set_Pixel_Sizes(face, 0, FONT_SIZE);
@@ -83,15 +79,16 @@ int main(int argc, char* argv[]) {
 	Editor_RecalculateLines(&editor);
 
 	renderer_init(renderer);
-	// glm_vec2(VEC2(renderer->window_width / 2, renderer->window_height / 2), renderer->camera_pos);
 
 	unsigned int current_ticks = SDL_GetTicks();
 	unsigned int last_ticks = current_ticks;
 
-	unsigned int cursor_blink_timer = 0;
+	// unsigned int cursor_blink_timer = 0;
 	unsigned int cursor_blink_pause = 0;
 
 	vec2 thingyPos = {0,0}; // @Todo: temp remove
+
+	printf("Ready!\n");
 
 	bool quit = false;
 	SDL_Event event = {0};
@@ -113,7 +110,7 @@ int main(int argc, char* argv[]) {
 				} break;
 
 				case SDL_KEYDOWN: {
-					cursor_blink_pause = 100;
+					cursor_blink_pause = 600;
 					SDL_Keymod kmod = SDL_GetModState();
 					bool moveThingy = kmod & KMOD_ALT; // @Todo: temp remove
 
@@ -178,7 +175,8 @@ int main(int argc, char* argv[]) {
 		unsigned int dt = current_ticks - last_ticks;
 		last_ticks = current_ticks;
 
-		glClearColor(0.4, 0.5, 0.7, 1);
+		// glClearColor(0.4, 0.5, 0.7, 1);
+		glClearColor(RGBA_NORMALIZE(40, 41, 35, 255)); // 0x282923
 		glClear(GL_COLOR_BUFFER_BIT);
 
 		renderer->camera_zoom = glm_max(0.2, renderer->camera_zoom);
@@ -202,21 +200,14 @@ int main(int argc, char* argv[]) {
 
 		text_draw(&editor.font, renderer, editor.data.items, VEC2(0, 0), GLM_VEC4_ONE);
 
-		if(cursor_blink_pause > 0) {
-			cursor_blink_timer = 400;
+		if(current_ticks % 1000 > 400 && cursor_blink_pause > 0) {
 			cursor_blink_pause -= dt;
-		} else {
-			cursor_blink_timer += dt;
 		}
 
-		if(cursor_blink_timer >= 400) {
+		if(current_ticks % 1000 > 400 || cursor_blink_pause > 0) {
 			renderer_set_shader(renderer, COLOR_SHADER);
 			renderer_solid_rect(renderer, cursor_pos, VEC2(3, editor.font.line_spacing), GLM_VEC4_ONE);
 			renderer_draw(renderer);
-
-			if(cursor_blink_timer >= 1000) {
-				cursor_blink_timer = 0;
-			}
 		}
 		
 		glm_translate_make(renderer->transform, VEC3(thingyPos[0], thingyPos[1], 0));

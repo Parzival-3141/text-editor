@@ -1,5 +1,6 @@
 #include <string.h>
 #include <SDL.h>
+#include <glad.h>
 
 #include "common.h"
 
@@ -51,6 +52,35 @@ char* concat_str(const char* s1, const char* s2) {
 	strcat(new_str, s2);
 
 	return new_str;
+}
+
+void check_FT_err(int code, const char* err_msg) {
+   	if(code != 0) {
+		fprintf(stderr, "FreeType ERROR: %s\n", err_msg);
+        exit(1);
+	}
+}
+
+void check_gl_err(void) {
+	GLenum err = glGetError();
+	if(err != GL_NO_ERROR) {
+		while(err != GL_NO_ERROR)
+		{
+			char* msg;
+			switch(err) {
+				case GL_INVALID_ENUM: msg = "GL_INVALID_ENUM"; break;
+				case GL_INVALID_VALUE: msg = "GL_INVALID_VALUE"; break;
+				case GL_INVALID_OPERATION: msg = "GL_INVALID_OPERATION"; break;
+				case GL_INVALID_FRAMEBUFFER_OPERATION: msg = "GL_INVALID_FRAMEBUFFER_OPERATION"; break;
+				case GL_OUT_OF_MEMORY: msg = "GL_OUT_OF_MEMORY"; break;
+			} 
+
+			fprintf(stderr, "OPENGL ERROR: %s\n", msg);
+			err = glGetError();
+		}
+		
+		exit(1);
+	}
 }
 
 bool is_whitespace(const char c) {

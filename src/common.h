@@ -35,14 +35,18 @@ typedef unsigned char u8;
 // need to declare here, and define in common.c. Otherwise the linker shits itself.
 extern char* common_base_path; 
 
+bool is_whitespace(const char c);
 char* concat_str(const char* s1, const char* s2);
 
 void check_SDL_err(int code);
 void* check_SDL_ptr(void* ptr);
 
+void check_FT_err(int code, const char* err_msg);
+
 void* check_ptr(void* ptr, const char* msg_format, ...);
 void* check_alloc(void* ptr, const char* func_name);
 
-bool is_whitespace(const char c);
+void check_gl_err(void);
+
 
 #endif //_COMMON_H_

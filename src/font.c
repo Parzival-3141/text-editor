@@ -1,5 +1,4 @@
 #include "font.h"
-#include "err_utils.h"
 #include "common.h"
 
 #define GLYPH_PADDING 1 // pixels

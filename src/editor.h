@@ -2,7 +2,7 @@
 #define EDITOR_H_
 
 #include <stdlib.h>
-#include "err_utils.h"
+#include "common.h"
 #include "font.h"
 #include "renderer.h"
 
@@ -10,7 +10,7 @@
 	do {                                                                                                                \
 		if((list_ptr)->count >= (list_ptr)->capacity) {                                                                 \
 			(list_ptr)->capacity = (list_ptr)->capacity == 0 ? list_type##_INIT_CAPACITY : (list_ptr)->capacity * 2;    \
-			(list_ptr)->items = CheckPtr(realloc((list_ptr)->items, (list_ptr)->capacity * sizeof(*(list_ptr)->items)), \
+			(list_ptr)->items = check_ptr(realloc((list_ptr)->items, (list_ptr)->capacity * sizeof(*(list_ptr)->items)), \
 				"Error: Unable to allocate more memory for " #list_type "! (Buy more RAM lol)\n");                      \
 		}                                                                                                               \
 		                                                                                                                \

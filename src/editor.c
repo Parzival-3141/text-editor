@@ -4,7 +4,6 @@
 #include <assert.h>
 
 #include <cglm/cglm.h>
-#include "common.h"
 
 const char word_seperators[] = { ' ', '_' };
 

@@ -6,7 +6,7 @@ pub fn build(b: *std.Build) void {
 
     const exe = b.addExecutable(.{ .name = "wheel", .target = target, .optimize = optimize });
     exe.linkLibC();
-    exe.install();
+    b.installArtifact(exe);
 
     const csources = get_file_paths(b, "src", ".c") catch unreachable;
     defer csources.deinit();
@@ -30,7 +30,7 @@ pub fn build(b: *std.Build) void {
     installBinFiles(b, shaders.items, "assets/shaders") catch unreachable;
     installBinFiles(b, icons.items, "assets/icons") catch unreachable;
 
-    const run_cmd = exe.run();
+    const run_cmd = b.addRunArtifact(exe);
     run_cmd.step.dependOn(b.getInstallStep());
     if (b.args) |args| {
         run_cmd.addArgs(args);
