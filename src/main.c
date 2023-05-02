@@ -15,7 +15,7 @@
 #include "common.h"
 #include "renderer.h"
 #include "text.h"
-// #include "fs.h"
+#include "fs.h"
 
 // @Todo: clean up and standardize font/text sizing
 #define FONT_SIZE 32
@@ -77,7 +77,8 @@ int main(int argc, char* argv[]) {
 	FT_Done_Face(face);
 
 	// Initialize file system browser
-	// FS_init((unsigned char*)".");
+	FS_init(".");
+	FS_read_directory();
 
 	// Initialize with 0 so text renderer doesn't crash
 	LIST_APPEND(TextArray, &editor.data, '\0');
@@ -149,18 +150,18 @@ int main(int argc, char* argv[]) {
 							printf("recompiled shaders\n");
 						} break;
 
-						// case SDLK_F3: {
-						// 	if(FS_read_directory()) {
-						// 		printf("Read dir failed!\n");
-						// 	} else {
-						// 		FS_Node* nodes = FS_view_nodes();
-						// 		for (size_t i = 0; i < FS_nodes_length(); ++i)
-						// 		{
-						// 			printf("%s : %s", nodes[i].name, FS_get_nodetype_as_cstr(nodes[i].type));
-						// 		}
-						// 	}
+						case SDLK_F3: {
+							if(FS_read_directory()) {
+								printf("Read dir failed!\n");
+							} else {
+								FS_Node* nodes = FS_view_nodes();
+								for (size_t i = 0; i < FS_nodes_length(); ++i)
+								{
+									printf("%s : %s\n", nodes[i].name, FS_get_nodetype_as_cstr(nodes[i].type));
+								}
+							}
 
-						// } break;
+						} break;
 					}
 				} break;
 
@@ -195,7 +196,7 @@ int main(int argc, char* argv[]) {
 		glClearColor(RGBA_NORMALIZE(40, 41, 35, 255)); // 0x282923
 		glClear(GL_COLOR_BUFFER_BIT);
 
-		renderer->camera_zoom = glm_max(0.2, renderer->camera_zoom);
+		renderer->camera_zoom = glm_clamp(renderer->camera_zoom, 0.25, 5.0);
 
 		vec2 cursor_pos;
 		Editor_GetCursorScreenPos(&editor, editor.world_cursor, cursor_pos);
@@ -203,19 +204,16 @@ int main(int argc, char* argv[]) {
 
 		{
 			// @Todo: make camera context aware, zooming in/out to frame text better, and loosely following the cursor
-			// new_cam_pos = pos * cam_zoom;
-			// cam = lerp(cam, new_cam_pos, cam_speed);
-			vec2 new_cam_pos;
-			glm_vec2_scale(!editor.editing_text ? editor.world_cursor : cursor_pos, renderer->camera_zoom, new_cam_pos);
-			glm_vec2_lerp(renderer->camera_pos, new_cam_pos, 2 * (dt / 1000.0), renderer->camera_pos);
 
+			vec2* cam_target = !editor.editing_text ? &editor.world_cursor : &cursor_pos;
+			glm_vec2_lerp(renderer->camera_pos, *cam_target, 2 * (dt / 1000.0), renderer->camera_pos);
 			renderer_update_camera_projection(renderer);
 		}
 
 		if(editor.editing_text) {
 			Editor_RenderTextBox(&editor, renderer, editor.world_cursor);
 
-			text_draw(&editor.font, renderer, editor.data.items, editor.world_cursor, GLM_VEC4_ONE);
+			text_draw(&editor.font, renderer, editor.data.items, editor.world_cursor, COLOR_WHITE);
 
 			if(current_ticks % 1000 > 400 && cursor_blink_pause > 0) {
 				cursor_blink_pause -= dt;
@@ -223,10 +221,24 @@ int main(int argc, char* argv[]) {
 
 			if(current_ticks % 1000 > 400 || cursor_blink_pause > 0) {
 				renderer_set_shader(renderer, COLOR_SHADER);
-				renderer_solid_rect(renderer, cursor_pos, VEC2(3, editor.font.line_spacing), GLM_VEC4_ONE);
+				renderer_solid_rect(renderer, cursor_pos, VEC2(3, editor.font.line_spacing), COLOR_WHITE);
 				renderer_draw(renderer);
 			}
 		} else {
+
+			{
+				FS_Node* nodes = FS_view_nodes();
+				for (size_t i = 0; i < FS_nodes_length(); ++i)
+				{
+					// printf("%s : %s\n", nodes[i].name, FS_get_nodetype_as_cstr(nodes[i].type));
+					renderer_set_shader(renderer, COLOR_SHADER);
+					renderer_solid_rect(renderer, VEC2(0, i * -150.0), VEC2(100, 100), VEC4(1, 0.5, 0.15, 1));
+					renderer_draw(renderer);
+					
+					text_draw(&editor.font, renderer, nodes[i].name, VEC2(100, i * -150.0 + 25.0), COLOR_WHITE);
+				}
+			}
+
 			renderer_set_transform(renderer, editor.world_cursor);
 
 			renderer_set_shader(renderer, COLOR_SHADER);
@@ -239,7 +251,7 @@ int main(int argc, char* argv[]) {
 	}
 
 	free(editor.data.items);
-	// FS_deinit();
+	FS_deinit();
   	FT_Done_FreeType(ft);
   	SDL_GL_DeleteContext(gl_context);
   	SDL_DestroyWindow(window);

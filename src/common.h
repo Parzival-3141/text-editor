@@ -28,6 +28,7 @@
 #define VEC3(x, y, z) (vec3){x, y, z}
 #define IVEC2(x, y) (ivec2){x, y}
 #define VEC4(x, y, z, w) (vec4){x, y, z, w}
+#define COLOR_WHITE GLM_VEC4_ONE
 
 typedef unsigned int  u32;
 typedef unsigned char u8;

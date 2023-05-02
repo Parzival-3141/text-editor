@@ -4,14 +4,29 @@ pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
 
-    const exe = b.addExecutable(.{ .name = "wheel", .target = target, .optimize = optimize });
+    const exe = b.addExecutable(.{
+        .name = "wheel",
+        .target = target,
+        .optimize = optimize,
+    });
     exe.linkLibC();
+    // exe.verbose_cc = true;
     b.installArtifact(exe);
 
     const csources = get_file_paths(b, "src", ".c") catch unreachable;
     defer csources.deinit();
 
     exe.addCSourceFiles(csources.items, &.{ "-Wall", "-Wextra", "-pedantic", "--debug", "-Werror", "-Wno-unused-parameter" });
+
+    const fs_obj = b.addObject(.{
+        .name = "fs",
+        .root_source_file = .{ .path = "src/fs.zig" },
+        .target = target,
+        .optimize = optimize,
+    });
+    // fs_obj.emit_h = true;
+    exe.step.dependOn(&fs_obj.step);
+    exe.addObject(fs_obj);
 
     linkSDL2(b, exe);
     linkFreetype(b, exe);

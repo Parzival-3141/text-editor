@@ -81,18 +81,16 @@ void renderer_set_transform(Renderer* r, vec2 position) {
 
 void renderer_update_camera_projection(Renderer* r) {
 	glm_ortho(
-		r->camera_pos[0] - (float)r->window_width  / 2.0, // left
-		r->camera_pos[0] + (float)r->window_width  / 2.0, // right
-      	r->camera_pos[1] - (float)r->window_height / 2.0, // bottom
-      	r->camera_pos[1] + (float)r->window_height / 2.0, // top
+		r->camera_pos[0] - ((float)r->window_width  / 2.0) / r->camera_zoom, // left
+		r->camera_pos[0] + ((float)r->window_width  / 2.0) / r->camera_zoom, // right
+      	r->camera_pos[1] - ((float)r->window_height / 2.0) / r->camera_zoom, // bottom
+      	r->camera_pos[1] + ((float)r->window_height / 2.0) / r->camera_zoom, // top
   		0.1, 10,
       	r->projection);
 
-	mat4 zoom = GLM_MAT4_IDENTITY_INIT;
-	glm_scale_uni(zoom, r->camera_zoom);
-
-	glm_mat4_mul(r->projection, zoom, r->projection);
-
+	// mat4 zoom = GLM_MAT4_IDENTITY_INIT;
+	// glm_scale_uni(zoom, r->camera_zoom);
+	// glm_mat4_mul(zoom, r->projection, r->projection);
 }
 
 void renderer_draw(Renderer* r) {
