@@ -43,6 +43,8 @@ typedef struct {
 
 void renderer_init(Renderer* r);
 void renderer_draw(Renderer* r);
+
+void renderer_set_transform(Renderer* r, vec2 position);
 void renderer_update_camera_projection(Renderer* r);
 
 void renderer_set_shader(Renderer* r, Shader s);

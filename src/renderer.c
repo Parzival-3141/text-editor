@@ -75,6 +75,10 @@ void renderer_set_shader(Renderer* r, Shader shader) {
 	glue_set_uniform_mat4(r->programs[r->current_shader], "transform", r->transform);
 }
 
+void renderer_set_transform(Renderer* r, vec2 position) {
+	glm_translate_make(r->transform, VEC3(position[0], position[1], 0));
+}
+
 void renderer_update_camera_projection(Renderer* r) {
 	glm_ortho(
 		r->camera_pos[0] - (float)r->window_width  / 2.0, // left

@@ -40,10 +40,13 @@ typedef struct {
 } LineArray;
 
 typedef struct {
+	Font font;
+
 	TextArray data;
 	LineArray lines;
 
-	Font font;
+	bool editing_text;
+	vec2 world_cursor;
 
 	size_t cursor;
 	size_t saved_cursor_max_column;

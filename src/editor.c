@@ -191,7 +191,7 @@ void Editor_GetCursorScreenPos(Editor* e, vec2 start_pos, vec2 cursor_pos) {
 		offset[0] += gi->advance;
 
 		if(e->data.items[i] == '\n') {
-			offset[0] = start_pos[0];
+			offset[0] = 0;
 			offset[1] -= e->font.line_spacing;
 		}
 	}

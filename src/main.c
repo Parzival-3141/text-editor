@@ -15,12 +15,14 @@
 #include "common.h"
 #include "renderer.h"
 #include "text.h"
+// #include "fs.h"
 
 // @Todo: clean up and standardize font/text sizing
 #define FONT_SIZE 32
 #define DEFAULT_FONT_PATH "assets/Hack Regular Nerd Font Complete.ttf"
 
 #define TEST_TXT "1234567890-=\n!@#$%%^&*()_+\nabcdefghijklmnopqrstuvwxyz\nABCDEFGHIJKLMNOPQRSTUVWXYZ\n`[]\\;',./\n~{}|:\"<>?"
+
 
 Editor editor = {0};
 Renderer* renderer = &(Renderer){0};
@@ -74,6 +76,9 @@ int main(int argc, char* argv[]) {
 	}
 	FT_Done_Face(face);
 
+	// Initialize file system browser
+	// FS_init((unsigned char*)".");
+
 	// Initialize with 0 so text renderer doesn't crash
 	LIST_APPEND(TextArray, &editor.data, '\0');
 	Editor_RecalculateLines(&editor);
@@ -83,10 +88,7 @@ int main(int argc, char* argv[]) {
 	unsigned int current_ticks = SDL_GetTicks();
 	unsigned int last_ticks = current_ticks;
 
-	// unsigned int cursor_blink_timer = 0;
 	unsigned int cursor_blink_pause = 0;
-
-	vec2 thingyPos = {0,0}; // @Todo: temp remove
 
 	printf("Ready!\n");
 
@@ -112,24 +114,25 @@ int main(int argc, char* argv[]) {
 				case SDL_KEYDOWN: {
 					cursor_blink_pause = 600;
 					SDL_Keymod kmod = SDL_GetModState();
-					bool moveThingy = kmod & KMOD_ALT; // @Todo: temp remove
 
 					switch(event.key.keysym.sym) {
-						case SDLK_BACKSPACE: Editor_Backspace(&editor); break;
-						case SDLK_RETURN: Editor_InsertChar(&editor, '\n'); break;
-						case SDLK_DELETE: Editor_Delete(&editor); break;
+						case SDLK_BACKSPACE: if(editor.editing_text) Editor_Backspace(&editor); break;
+						case SDLK_RETURN:    if(editor.editing_text) Editor_InsertChar(&editor, '\n'); break;
+						case SDLK_DELETE:    if(editor.editing_text) Editor_Delete(&editor); break;
 
-						case SDLK_TAB: for(int i=0; i<4; i++) Editor_InsertChar(&editor, ' '); break;
+						case SDLK_TAB: if(editor.editing_text) { for(int i=0; i<4; i++) Editor_InsertChar(&editor, ' '); } break;
 						case SDLK_0: if(kmod & KMOD_CTRL) renderer->camera_zoom = 1; break;
 
-						case SDLK_UP:    if(moveThingy) thingyPos[1] += 25; else Editor_MoveCursorUp(&editor);    break;
-						case SDLK_DOWN:  if(moveThingy) thingyPos[1] -= 25; else Editor_MoveCursorDown(&editor);  break;
-						case SDLK_LEFT:  if(moveThingy) thingyPos[0] -= 25; else if(kmod & KMOD_CTRL) Editor_MoveCursorToPrevWord(&editor); else Editor_MoveCursorLeft(&editor);  break;
-						case SDLK_RIGHT: if(moveThingy) thingyPos[0] += 25; else if(kmod & KMOD_CTRL) Editor_MoveCursorToNextWord(&editor); else Editor_MoveCursorRight(&editor); break;
+						case SDLK_UP:    if(!editor.editing_text) editor.world_cursor[1] += 25; else Editor_MoveCursorUp(&editor);    break;
+						case SDLK_DOWN:  if(!editor.editing_text) editor.world_cursor[1] -= 25; else Editor_MoveCursorDown(&editor);  break;
+						case SDLK_LEFT:  if(!editor.editing_text) editor.world_cursor[0] -= 25; else if(kmod & KMOD_CTRL) Editor_MoveCursorToPrevWord(&editor); else Editor_MoveCursorLeft(&editor);  break;
+						case SDLK_RIGHT: if(!editor.editing_text) editor.world_cursor[0] += 25; else if(kmod & KMOD_CTRL) Editor_MoveCursorToNextWord(&editor); else Editor_MoveCursorRight(&editor); break;
 
-						case SDLK_HOME: Editor_MoveCursorToLineStart(&editor); break;
-						case SDLK_END:  Editor_MoveCursorToLineEnd(&editor); break;
+						case SDLK_HOME: if(editor.editing_text) Editor_MoveCursorToLineStart(&editor); break;
+						case SDLK_END:  if(editor.editing_text) Editor_MoveCursorToLineEnd(&editor); break;
 						
+						case SDLK_ESCAPE: editor.editing_text = !editor.editing_text; break;
+
 						case SDLK_F1: { 
 							renderer->draw_wireframe = !renderer->draw_wireframe;
 							if(renderer->draw_wireframe) {
@@ -145,12 +148,25 @@ int main(int argc, char* argv[]) {
 							renderer_recompile_shaders(renderer);
 							printf("recompiled shaders\n");
 						} break;
+
+						// case SDLK_F3: {
+						// 	if(FS_read_directory()) {
+						// 		printf("Read dir failed!\n");
+						// 	} else {
+						// 		FS_Node* nodes = FS_view_nodes();
+						// 		for (size_t i = 0; i < FS_nodes_length(); ++i)
+						// 		{
+						// 			printf("%s : %s", nodes[i].name, FS_get_nodetype_as_cstr(nodes[i].type));
+						// 		}
+						// 	}
+
+						// } break;
 					}
 				} break;
 
 				case SDL_TEXTINPUT: {
 					SDL_Keymod kmod = SDL_GetModState();
-					if(kmod & KMOD_CTRL || kmod & KMOD_ALT) break;
+					if(!editor.editing_text || kmod & KMOD_CTRL || kmod & KMOD_ALT) break;
 
 					const char* text = event.text.text;
 					size_t len = strlen(text);
@@ -182,46 +198,48 @@ int main(int argc, char* argv[]) {
 		renderer->camera_zoom = glm_max(0.2, renderer->camera_zoom);
 
 		vec2 cursor_pos;
-		Editor_GetCursorScreenPos(&editor, VEC2(0, 0), cursor_pos);
+		Editor_GetCursorScreenPos(&editor, editor.world_cursor, cursor_pos);
 		cursor_pos[1] -= (editor.font.line_spacing * 0.2); // @Todo: probably a better way to center the cursor depending on the font
 
 		{
 			// @Todo: make camera context aware, zooming in/out to frame text better, and loosely following the cursor
-			// new_cam_pos = cursor_pos * cam_zoom;
+			// new_cam_pos = pos * cam_zoom;
 			// cam = lerp(cam, new_cam_pos, cam_speed);
 			vec2 new_cam_pos;
-			glm_vec2_scale(SDL_GetModState() & KMOD_ALT ? thingyPos : cursor_pos, renderer->camera_zoom, new_cam_pos);
+			glm_vec2_scale(!editor.editing_text ? editor.world_cursor : cursor_pos, renderer->camera_zoom, new_cam_pos);
 			glm_vec2_lerp(renderer->camera_pos, new_cam_pos, 2 * (dt / 1000.0), renderer->camera_pos);
 
 			renderer_update_camera_projection(renderer);
 		}
 
-		Editor_RenderTextBox(&editor, renderer, VEC2(0,0));
+		if(editor.editing_text) {
+			Editor_RenderTextBox(&editor, renderer, editor.world_cursor);
 
-		text_draw(&editor.font, renderer, editor.data.items, VEC2(0, 0), GLM_VEC4_ONE);
+			text_draw(&editor.font, renderer, editor.data.items, editor.world_cursor, GLM_VEC4_ONE);
 
-		if(current_ticks % 1000 > 400 && cursor_blink_pause > 0) {
-			cursor_blink_pause -= dt;
-		}
+			if(current_ticks % 1000 > 400 && cursor_blink_pause > 0) {
+				cursor_blink_pause -= dt;
+			}
 
-		if(current_ticks % 1000 > 400 || cursor_blink_pause > 0) {
+			if(current_ticks % 1000 > 400 || cursor_blink_pause > 0) {
+				renderer_set_shader(renderer, COLOR_SHADER);
+				renderer_solid_rect(renderer, cursor_pos, VEC2(3, editor.font.line_spacing), GLM_VEC4_ONE);
+				renderer_draw(renderer);
+			}
+		} else {
+			renderer_set_transform(renderer, editor.world_cursor);
+
 			renderer_set_shader(renderer, COLOR_SHADER);
-			renderer_solid_rect(renderer, cursor_pos, VEC2(3, editor.font.line_spacing), GLM_VEC4_ONE);
+			renderer_solid_rect(renderer, VEC2(0,0), VEC2(25,25), VEC4(1, 0, 0, 1));
 			renderer_draw(renderer);
 		}
-		
-		glm_translate_make(renderer->transform, VEC3(thingyPos[0], thingyPos[1], 0));
-
-		renderer_set_shader(renderer, COLOR_SHADER);
-		renderer_solid_rect(renderer, VEC2(0,0), VEC2(25,25), VEC4(1, 0, 0, 1));
-		renderer_draw(renderer);
 
 		SDL_GL_SwapWindow(window);
 		check_gl_err();
 	}
 
 	free(editor.data.items);
-	
+	// FS_deinit();
   	FT_Done_FreeType(ft);
   	SDL_GL_DeleteContext(gl_context);
   	SDL_DestroyWindow(window);

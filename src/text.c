@@ -3,14 +3,8 @@
 
 // @Todo: figure out how to architect the text rendering better
 void text_draw(Font* f, Renderer* r, const char* text, vec2 pos, vec4 color) {
-	renderer_set_shader(r, TEXT_SHADER);
-
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, f->atlas);
-
 	vec2 glyph_pos;
 	vec2 pen_pos = {0};
-	// glm_vec2_copy(pos, pen_pos);
 
 	GlyphInfo* gi;
 
@@ -40,11 +34,17 @@ void text_draw(Font* f, Renderer* r, const char* text, vec2 pos, vec4 color) {
 
 		pen_pos[0] += gi->advance;
 		if(text[i] == '\n') {
-			pen_pos[0] = 0; //pos[0];
+			pen_pos[0] = 0;
 			pen_pos[1] -= f->line_spacing; 
 		}
 	}
 
+	renderer_set_transform(r, pos);
+	renderer_set_shader(r, TEXT_SHADER);
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, f->atlas);
+	
 	renderer_draw(r);
 }
 
