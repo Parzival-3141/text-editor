@@ -58,6 +58,11 @@ void create_font_atlas(Font* f, FT_Face face) {
 		xpos += g->bitmap.width + GLYPH_PADDING;
 	}
 
+	// fix for tabs not having an advance
+	if(f->glyphs[(int)'\t'].advance == 0) {
+		f->glyphs[(int)'\t'].advance = f->glyphs[(int)' '].advance * 4;
+	}
+
 	f->atlas = texture;
 	f->atlas_width  = width;
 	f->atlas_height = height;

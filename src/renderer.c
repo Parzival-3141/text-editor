@@ -2,6 +2,8 @@
 #include "glue.h"
 
 void renderer_init(Renderer* r) {
+	printf("RENDERER_MAX_VERTICES: %d\n", RENDERER_MAX_VERTICES);
+
 	r->window_width = WINDOW_START_WIDTH;
 	r->window_height = WINDOW_START_HEIGHT;
 
@@ -75,8 +77,9 @@ void renderer_set_shader(Renderer* r, Shader shader) {
 	glue_set_uniform_mat4(r->programs[r->current_shader], "transform", r->transform);
 }
 
-void renderer_set_transform(Renderer* r, vec2 position) {
+void renderer_set_transform(Renderer* r, vec2 position, float scale) {
 	glm_translate_make(r->transform, VEC3(position[0], position[1], 0));
+	glm_scale_uni(r->transform, scale);
 }
 
 void renderer_update_camera_projection(Renderer* r) {

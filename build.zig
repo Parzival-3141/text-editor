@@ -24,6 +24,8 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
     });
+    fs_obj.linkLibC();
+    fs_obj.addIncludePath("deps/cglm/include");
     // fs_obj.emit_h = true;
     exe.step.dependOn(&fs_obj.step);
     exe.addObject(fs_obj);

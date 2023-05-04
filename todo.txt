@@ -1,6 +1,12 @@
 File browser
  - file saving/loading
- - directory explorer
+
+Write StringBuilder library
+ - Pointer and a length
+ - Write helper functions like append, concat, resize, etc.
+
+Cache inputs at start of frame, so I can query at any point in the code afterward
+e.g. if (Input_get_key_down('K')) {...}
 
 Clean up text rendering code
  - group things neat and consisely
@@ -12,8 +18,5 @@ Utilize screenspace coords and GL projection to cull geometry
  - After projection GL will handle any triangles that are partially offscreen, and cull ones that 
 	arent visible entirely.
 
-Write String type
- - Pointer and a length
- - Write some helper functions like init(?), concat, resize
 
 

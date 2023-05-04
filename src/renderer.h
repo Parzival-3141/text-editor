@@ -5,7 +5,7 @@
 #include <glad.h>
 #include <assert.h>
 
-#define RENDERER_MAX_VERTICES 3*1000 // @Note: kinda arbitrary, maybe look into a better solution?
+#define RENDERER_MAX_VERTICES 3 * 1000 * 1000 // @Note: kinda arbitrary, maybe look into a better solution?
 static_assert(RENDERER_MAX_VERTICES % 3 == 0, "RENDERER_MAX_VERTICES must be a multiple of 3, since we're rendering triangles.");
 
 #define WINDOW_START_WIDTH 1280
@@ -44,7 +44,7 @@ typedef struct {
 void renderer_init(Renderer* r);
 void renderer_draw(Renderer* r);
 
-void renderer_set_transform(Renderer* r, vec2 position);
+void renderer_set_transform(Renderer* r, vec2 position, float scale);
 void renderer_update_camera_projection(Renderer* r);
 
 void renderer_set_shader(Renderer* r, Shader s);

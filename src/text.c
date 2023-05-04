@@ -2,7 +2,7 @@
 #include "common.h"
 
 // @Todo: figure out how to architect the text rendering better
-void text_draw(Font* f, Renderer* r, const char* text, vec2 pos, vec4 color) {
+void text_draw(Font* f, Renderer* r, const char* text, vec2 pos, float scale, vec4 color) {
 	vec2 glyph_pos;
 	vec2 pen_pos = {0};
 
@@ -31,7 +31,7 @@ void text_draw(Font* f, Renderer* r, const char* text, vec2 pos, vec4 color) {
 
 			renderer_image_rect(r, glyph_pos, VEC2(gi->size[0], gi->size[1]), color, uv_origin, uv_size);
 		}
-
+		
 		pen_pos[0] += gi->advance;
 		if(text[i] == '\n') {
 			pen_pos[0] = 0;
@@ -39,7 +39,7 @@ void text_draw(Font* f, Renderer* r, const char* text, vec2 pos, vec4 color) {
 		}
 	}
 
-	renderer_set_transform(r, pos);
+	renderer_set_transform(r, pos, scale);
 	renderer_set_shader(r, TEXT_SHADER);
 
 	glActiveTexture(GL_TEXTURE0);

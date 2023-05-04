@@ -56,7 +56,6 @@ int main(int argc, char* argv[]) {
 	// glEnable(GL_MULTISAMPLE);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glViewport(0, 0, WINDOW_START_WIDTH, WINDOW_START_HEIGHT);
-	
 
 	// Init FreeType
 	char* default_font_path = concat_str(common_base_path, DEFAULT_FONT_PATH);
@@ -77,7 +76,7 @@ int main(int argc, char* argv[]) {
 	FT_Done_Face(face);
 
 	// Initialize file system browser
-	FS_init(".");
+	FS_init("..");
 	FS_read_directory();
 
 	// Initialize with 0 so text renderer doesn't crash
@@ -96,6 +95,8 @@ int main(int argc, char* argv[]) {
 	bool quit = false;
 	SDL_Event event = {0};
 	while(!quit) {
+		bool select = false;
+		bool close = false;
 		while(SDL_PollEvent(&event)) {
 			switch(event.type) {
 				case SDL_QUIT: {
@@ -118,8 +119,9 @@ int main(int argc, char* argv[]) {
 
 					switch(event.key.keysym.sym) {
 						case SDLK_BACKSPACE: if(editor.editing_text) Editor_Backspace(&editor); break;
-						case SDLK_RETURN:    if(editor.editing_text) Editor_InsertChar(&editor, '\n'); break;
+						case SDLK_RETURN:    if(editor.editing_text) Editor_InsertChar(&editor, '\n'); else select = true; break;
 						case SDLK_DELETE:    if(editor.editing_text) Editor_Delete(&editor); break;
+						case SDLK_ESCAPE: 	 close = true; break;
 
 						case SDLK_TAB: if(editor.editing_text) { for(int i=0; i<4; i++) Editor_InsertChar(&editor, ' '); } break;
 						case SDLK_0: if(kmod & KMOD_CTRL) renderer->camera_zoom = 1; break;
@@ -132,7 +134,6 @@ int main(int argc, char* argv[]) {
 						case SDLK_HOME: if(editor.editing_text) Editor_MoveCursorToLineStart(&editor); break;
 						case SDLK_END:  if(editor.editing_text) Editor_MoveCursorToLineEnd(&editor); break;
 						
-						case SDLK_ESCAPE: editor.editing_text = !editor.editing_text; break;
 
 						case SDLK_F1: { 
 							renderer->draw_wireframe = !renderer->draw_wireframe;
@@ -152,8 +153,6 @@ int main(int argc, char* argv[]) {
 
 						case SDLK_F3: {
 							if(FS_read_directory()) {
-								printf("Read dir failed!\n");
-							} else {
 								FS_Node* nodes = FS_view_nodes();
 								for (size_t i = 0; i < FS_nodes_length(); ++i)
 								{
@@ -192,10 +191,6 @@ int main(int argc, char* argv[]) {
 		unsigned int dt = current_ticks - last_ticks;
 		last_ticks = current_ticks;
 
-		// glClearColor(0.4, 0.5, 0.7, 1);
-		glClearColor(RGBA_NORMALIZE(40, 41, 35, 255)); // 0x282923
-		glClear(GL_COLOR_BUFFER_BIT);
-
 		renderer->camera_zoom = glm_clamp(renderer->camera_zoom, 0.25, 5.0);
 
 		vec2 cursor_pos;
@@ -210,10 +205,35 @@ int main(int argc, char* argv[]) {
 			renderer_update_camera_projection(renderer);
 		}
 
+		// Handle opening/closing directories/files
+		if(select) {
+			// try to enter dir or open file
+			FS_Node* node;
+			if(FS_get_node_at_position(editor.world_cursor[0], editor.world_cursor[1], &node)) {
+				switch(node->type) {
+					case file: Editor_OpenFile(&editor, node->name); break;
+					case directory: if(FS_cd(node->name)) FS_read_directory(); break;
+				}
+			}
+		}
+
+		if(close) {
+			if(editor.editing_text) {
+				editor.editing_text = false;
+			} else {
+				if(FS_cd("..")) FS_read_directory();
+			}
+		}
+
+		// Rendering
+		// glClearColor(0.4, 0.5, 0.7, 1);
+		glClearColor(RGBA_NORMALIZE(40, 41, 35, 255)); // 0x282923
+		glClear(GL_COLOR_BUFFER_BIT);
+
 		if(editor.editing_text) {
 			Editor_RenderTextBox(&editor, renderer, editor.world_cursor);
 
-			text_draw(&editor.font, renderer, editor.data.items, editor.world_cursor, COLOR_WHITE);
+			text_draw(&editor.font, renderer, editor.data.items, editor.world_cursor, 1, COLOR_WHITE);
 
 			if(current_ticks % 1000 > 400 && cursor_blink_pause > 0) {
 				cursor_blink_pause -= dt;
@@ -225,21 +245,22 @@ int main(int argc, char* argv[]) {
 				renderer_draw(renderer);
 			}
 		} else {
-
 			{
 				FS_Node* nodes = FS_view_nodes();
+				vec4 dir_color = {1, 0.5, 0.15, 1};
+				vec4 file_color = {0.15, 0.5, 1, 1};
 				for (size_t i = 0; i < FS_nodes_length(); ++i)
 				{
-					// printf("%s : %s\n", nodes[i].name, FS_get_nodetype_as_cstr(nodes[i].type));
+					vec2* node_pos = &nodes[i].pos;
 					renderer_set_shader(renderer, COLOR_SHADER);
-					renderer_solid_rect(renderer, VEC2(0, i * -150.0), VEC2(100, 100), VEC4(1, 0.5, 0.15, 1));
+					renderer_solid_rect(renderer, *node_pos, VEC2(100, 100), nodes[i].type == file ? file_color : dir_color);
 					renderer_draw(renderer);
 					
-					text_draw(&editor.font, renderer, nodes[i].name, VEC2(100, i * -150.0 + 25.0), COLOR_WHITE);
+					text_draw(&editor.font, renderer, nodes[i].name, VEC2((*node_pos)[0], (*node_pos)[1] - 25), 0.75, COLOR_WHITE);
 				}
 			}
 
-			renderer_set_transform(renderer, editor.world_cursor);
+			renderer_set_transform(renderer, editor.world_cursor, 1);
 
 			renderer_set_shader(renderer, COLOR_SHADER);
 			renderer_solid_rect(renderer, VEC2(0,0), VEC2(25,25), VEC4(1, 0, 0, 1));

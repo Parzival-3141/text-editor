@@ -5,6 +5,7 @@
 #include "common.h"
 #include "font.h"
 #include "renderer.h"
+#include "fs.h"
 
 #define LIST_APPEND(list_type, list_ptr, item)                                                                          \
 	do {                                                                                                                \
@@ -72,5 +73,7 @@ size_t Editor_GetLineIndex(Editor* e, size_t cursor_index);
 
 void Editor_GetCursorScreenPos(Editor* e, vec2 start_pos, vec2 cursor_pos);
 void Editor_RenderTextBox(Editor* e, Renderer* r, vec2 start_pos);
+
+bool Editor_OpenFile(Editor* e, const char* name);
 
 #endif // EDITOR_H_

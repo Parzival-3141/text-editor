@@ -229,3 +229,21 @@ void Editor_RenderTextBox(Editor* e, Renderer* r, vec2 start_pos) {
 	renderer_solid_rect(r, VEC2(start_pos[0] - line_height, start_pos[1] + line_height), area, VEC4(0,0,0, 0.25));
 	renderer_draw(r);
 }
+
+bool Editor_OpenFile(Editor* e, const char* name) {
+	char* data;
+	size_t size = 0;
+	if(!FS_open_file(name, &data, &size)) return false;
+
+	free(e->data.items);
+
+	e->data.items = data;
+	e->data.capacity = size;
+	e->data.count = size;
+	LIST_APPEND('\0');
+
+	Editor_RecalculateLines(e);
+
+	e->editing_text = true;
+	return true;
+}
