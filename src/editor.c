@@ -240,7 +240,6 @@ bool Editor_OpenFile(Editor* e, const char* name) {
 	e->data.items = data;
 	e->data.capacity = size;
 	e->data.count = size;
-	LIST_APPEND('\0');
 
 	Editor_RecalculateLines(e);
 
