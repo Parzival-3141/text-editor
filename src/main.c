@@ -212,7 +212,11 @@ int main(int argc, char* argv[]) {
 			if(FS_get_node_at_position(editor.world_cursor[0], editor.world_cursor[1], &node)) {
 				switch(node->type) {
 					case file: Editor_OpenFile(&editor, node->name); break;
-					case directory: if(FS_cd(node->name)) FS_read_directory(); break;
+					case directory: { 
+						if(FS_cd(node->name) && FS_read_directory()) {
+							glm_vec2(VEC2(0,0), editor.world_cursor);
+						}
+					} break;
 				}
 			}
 		}
@@ -220,8 +224,8 @@ int main(int argc, char* argv[]) {
 		if(close) {
 			if(editor.editing_text) {
 				editor.editing_text = false;
-			} else {
-				if(FS_cd("..")) FS_read_directory();
+			} else if(FS_cd("..") && FS_read_directory()) { 
+				glm_vec2(VEC2(0,0), editor.world_cursor);
 			}
 		}
 
