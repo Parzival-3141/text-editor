@@ -5,6 +5,8 @@ Write StringBuilder library
  - Pointer and a length
  - Write helper functions like append, concat, resize, etc.
 
+Figure out why fs.zig hangs when compiling cImports using -Doptimize=ReleaseFast
+
 Cache inputs at start of frame, so I can query at any point in the code afterward
 e.g. if (Input_get_key_down('K')) {...}
 

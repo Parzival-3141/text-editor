@@ -104,7 +104,7 @@ export fn FS_cd(path: [*:0]const u8) bool {
         if (fs.path.isAbsolute(path_slice)) {
             break :blk allocator.dupe(u8, path_slice) catch @panic("OOM");
         } else {
-            break :blk fs.path.join(allocator, &[_][]const u8{ fsys.current_path, path_slice }) catch @panic("OOM");
+            break :blk fs.path.resolve(allocator, &[_][]const u8{ fsys.current_path, path_slice }) catch @panic("OOM");
         }
     };
 
@@ -116,6 +116,7 @@ export fn FS_cd(path: [*:0]const u8) bool {
 
     allocator.free(fsys.current_path);
     fsys.current_path = new_path;
+    log.info("current_path: {s}", .{fsys.current_path});
     return true;
 }
 
