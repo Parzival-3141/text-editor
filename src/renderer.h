@@ -20,6 +20,7 @@ typedef struct {
 typedef enum {
 	COLOR_SHADER = 0,
 	TEXT_SHADER,
+	TEXTURE_SHADER,
 	NUM_SHADERS
 } Shader;
 
@@ -30,6 +31,9 @@ typedef struct {
 
 	GLuint programs[NUM_SHADERS];
 	Shader current_shader;
+
+	GLuint file_tex;
+	GLuint dir_tex;
 
 	mat4 transform;
 	mat4 projection;

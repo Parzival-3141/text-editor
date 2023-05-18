@@ -1,6 +1,9 @@
 #ifndef _GLUE_H_
 #define _GLUE_H_
 
+//@Todo: Figure out how to set this from the include site
+#define GLUE_STB_IMAGE
+
 #include <glad.h>
 #include <stdbool.h>
 #include <cglm/mat4.h>

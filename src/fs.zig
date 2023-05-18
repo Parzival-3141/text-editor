@@ -152,6 +152,7 @@ export fn FS_open_file(name: [*:0]const u8, data: *[*:0]u8, size: *usize) bool {
 
     data.* = bytes.ptr;
     size.* = bytes.len;
+    log.info("opened: '{s}'", .{name});
     return true;
 }
 

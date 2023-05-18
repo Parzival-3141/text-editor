@@ -1,3 +1,5 @@
+fix buffer overrun when opening/editing text files!
+
 File browser
  - file saving/loading
 

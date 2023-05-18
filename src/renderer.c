@@ -9,6 +9,9 @@ void renderer_init(Renderer* r) {
 
 	r->camera_zoom = 1;
 
+	r->file_tex = glue_load_texture_file("assets/icons/description.png", true);
+	r->dir_tex = glue_load_texture_file("assets/icons/folder_open.png", true);
+
 	glm_mat4_identity(r->transform);
 
 	glGenVertexArrays(1, &r->vao);
@@ -35,6 +38,7 @@ void renderer_init(Renderer* r) {
 		glue_compile_shader_file("assets/shaders/default.vert", GL_VERTEX_SHADER),
 		glue_compile_shader_file("assets/shaders/color.frag", GL_FRAGMENT_SHADER),
 		glue_compile_shader_file("assets/shaders/text.frag", GL_FRAGMENT_SHADER),
+		glue_compile_shader_file("assets/shaders/texture.frag", GL_FRAGMENT_SHADER),
 	};
 
 	for (int i = 0; i < NUM_SHADERS; ++i)
@@ -54,6 +58,7 @@ void renderer_recompile_shaders(Renderer* r) {
 		glue_compile_shader_file("../../assets/shaders/default.vert", GL_VERTEX_SHADER),
 		glue_compile_shader_file("../../assets/shaders/color.frag", GL_FRAGMENT_SHADER),
 		glue_compile_shader_file("../../assets/shaders/text.frag", GL_FRAGMENT_SHADER),
+		glue_compile_shader_file("../../assets/shaders/texture.frag", GL_FRAGMENT_SHADER),
 	};
 
 	GLuint program;

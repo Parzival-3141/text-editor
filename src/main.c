@@ -17,7 +17,6 @@
 #include "text.h"
 #include "fs.h"
 
-// @Todo: clean up and standardize font/text sizing
 #define FONT_SIZE 32
 #define DEFAULT_FONT_PATH "assets/Hack Regular Nerd Font Complete.ttf"
 
@@ -76,7 +75,7 @@ int main(int argc, char* argv[]) {
 	FT_Done_Face(face);
 
 	// Initialize file system browser
-	FS_init("..");
+	FS_init(".");
 	FS_read_directory();
 
 	// Initialize with 0 so text renderer doesn't crash
@@ -200,8 +199,22 @@ int main(int argc, char* argv[]) {
 		{
 			// @Todo: make camera context aware, zooming in/out to frame text better, and loosely following the cursor
 
-			vec2* cam_target = !editor.editing_text ? &editor.world_cursor : &cursor_pos;
-			glm_vec2_lerp(renderer->camera_pos, *cam_target, 2 * (dt / 1000.0), renderer->camera_pos);
+			vec2 cam_target;
+			if(editor.editing_text) {
+				glm_vec2_copy(cursor_pos, cam_target);
+
+				// vec2 text_area;
+				// Line line = editor.lines.items[Editor_GetLineIndex(&editor, editor.cursor)];
+				// text_get_area(&editor.font, &editor.data.items[line.start], line.end - line.start, renderer->camera_zoom, text_area);
+
+				// glm_vec2(VEC2(cursor_pos[0] + glm_clamp(cursor_pos[0] - text_area[0]), cursor_pos[1]), cam_target);
+				// float new_zoom = text_area[0] != 0 ? text_area[0] / renderer->window_width : 1;
+
+			} else {
+				glm_vec2_copy(editor.world_cursor, cam_target);
+			}
+
+			glm_vec2_lerp(renderer->camera_pos, cam_target, 2 * (dt / 1000.0), renderer->camera_pos);
 			renderer_update_camera_projection(renderer);
 		}
 
@@ -234,6 +247,35 @@ int main(int argc, char* argv[]) {
 		glClearColor(RGBA_NORMALIZE(40, 41, 35, 255)); // 0x282923
 		glClear(GL_COLOR_BUFFER_BIT);
 
+		{
+			{
+				FS_Node* nodes = FS_view_nodes();
+				vec4 dir_color = {1, 0.5, 0.15, 1};
+				vec4 file_color = {0.15, 0.5, 1, 1};
+				for (size_t i = 0; i < FS_nodes_length(); ++i)
+				{
+					vec2* node_pos = &nodes[i].pos;
+					
+					renderer_set_shader(renderer, TEXTURE_SHADER);
+					glActiveTexture(GL_TEXTURE0);
+					glBindTexture(GL_TEXTURE_2D, nodes[i].type == file ? renderer->file_tex : renderer->dir_tex);
+					
+					renderer_image_rect(renderer, *node_pos, VEC2(100, 100), nodes[i].type == file ? file_color : dir_color, VEC2(0, 0), VEC2(1, 1));
+					renderer_draw(renderer);
+					
+					text_draw(&editor.font, renderer, nodes[i].name, VEC2((*node_pos)[0], (*node_pos)[1] - 25), 0.75, COLOR_WHITE);
+				}
+
+				glBindTexture(GL_TEXTURE_2D, 0); // unbind texture
+			}
+
+			renderer_set_transform(renderer, editor.world_cursor, 1);
+
+			renderer_set_shader(renderer, COLOR_SHADER);
+			renderer_solid_rect(renderer, VEC2(0,0), VEC2(25,25), VEC4(1, 0, 0, 1));
+			renderer_draw(renderer);
+		}
+
 		if(editor.editing_text) {
 			Editor_RenderTextBox(&editor, renderer, editor.world_cursor);
 
@@ -248,28 +290,7 @@ int main(int argc, char* argv[]) {
 				renderer_solid_rect(renderer, cursor_pos, VEC2(3, editor.font.line_spacing), COLOR_WHITE);
 				renderer_draw(renderer);
 			}
-		} else {
-			{
-				FS_Node* nodes = FS_view_nodes();
-				vec4 dir_color = {1, 0.5, 0.15, 1};
-				vec4 file_color = {0.15, 0.5, 1, 1};
-				for (size_t i = 0; i < FS_nodes_length(); ++i)
-				{
-					vec2* node_pos = &nodes[i].pos;
-					renderer_set_shader(renderer, COLOR_SHADER);
-					renderer_solid_rect(renderer, *node_pos, VEC2(100, 100), nodes[i].type == file ? file_color : dir_color);
-					renderer_draw(renderer);
-					
-					text_draw(&editor.font, renderer, nodes[i].name, VEC2((*node_pos)[0], (*node_pos)[1] - 25), 0.75, COLOR_WHITE);
-				}
-			}
-
-			renderer_set_transform(renderer, editor.world_cursor, 1);
-
-			renderer_set_shader(renderer, COLOR_SHADER);
-			renderer_solid_rect(renderer, VEC2(0,0), VEC2(25,25), VEC4(1, 0, 0, 1));
-			renderer_draw(renderer);
-		}
+		} 
 
 		SDL_GL_SwapWindow(window);
 		check_gl_err();

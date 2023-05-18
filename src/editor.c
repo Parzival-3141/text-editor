@@ -226,7 +226,7 @@ void Editor_RenderTextBox(Editor* e, Renderer* r, vec2 start_pos) {
 
 	// render rect
 	renderer_set_shader(r, COLOR_SHADER);
-	renderer_solid_rect(r, VEC2(start_pos[0] - line_height, start_pos[1] + line_height), area, VEC4(0,0,0, 0.25));
+	renderer_solid_rect(r, VEC2(start_pos[0] - line_height, start_pos[1] + line_height), area, VEC4(0,0,0, 0.75));
 	renderer_draw(r);
 }
 

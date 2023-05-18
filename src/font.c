@@ -67,4 +67,5 @@ void create_font_atlas(Font* f, FT_Face face) {
 	f->atlas_width  = width;
 	f->atlas_height = height;
 	f->line_spacing = height/*face->height / 64*/;
+	glBindTexture(GL_TEXTURE_2D, 0); // unbind texture
 }

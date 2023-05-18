@@ -48,15 +48,14 @@ void text_draw(Font* f, Renderer* r, const char* text, vec2 pos, float scale, ve
 	renderer_draw(r);
 }
 
-void text_get_area(Font* f, const char* text, float scale, vec2 area) {
+void text_get_area(Font* f, const char* text, size_t length, float scale, vec2 area) {
 	GlyphInfo* gi;
 	vec2 pen_pos = {0, 0};
 
 	float width = 0;
 	float line_height = f->line_spacing * scale;
 
-	int len = strlen(text);
-	for (int i = 0; i < len; ++i) {
+	for (size_t i = 0; i < length; ++i) {
 		gi = &f->glyphs[(int)text[i]];
 
 		pen_pos[0] += gi->advance * scale;
