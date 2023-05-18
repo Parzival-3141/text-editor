@@ -3,6 +3,7 @@
 
 #define GLYPH_PADDING 1 // pixels
 
+// Adapted from https://en.wikibooks.org/wiki/OpenGL_Programming/Modern_OpenGL_Tutorial_Text_Rendering_02
 void create_font_atlas(Font* f, FT_Face face) {
 	FT_GlyphSlot g = face->glyph;
 	unsigned int width = 0;
