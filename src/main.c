@@ -192,22 +192,22 @@ int main(int argc, char* argv[]) {
 
 		renderer->camera_zoom = glm_clamp(renderer->camera_zoom, 0.25, 5.0);
 
-		vec2 cursor_pos;
-		Editor_GetCursorScreenPos(&editor, editor.world_cursor, cursor_pos);
-		cursor_pos[1] -= (editor.font.line_spacing * 0.2); // @Todo: probably a better way to center the cursor depending on the font
+		vec2 text_cursor_pos;
+		Editor_GetCursorScreenPos(&editor, editor.world_cursor, text_cursor_pos);
+		text_cursor_pos[1] -= (editor.font.line_spacing * 0.2); // @Todo: probably a better way to center the cursor depending on the font
 
 		{
 			// @Todo: make camera context aware, zooming in/out to frame text better, and loosely following the cursor
 
 			vec2 cam_target;
 			if(editor.editing_text) {
-				glm_vec2_copy(cursor_pos, cam_target);
+				glm_vec2_copy(text_cursor_pos, cam_target);
 
 				// vec2 text_area;
 				// Line line = editor.lines.items[Editor_GetLineIndex(&editor, editor.cursor)];
 				// text_get_area(&editor.font, &editor.data.items[line.start], line.end - line.start, renderer->camera_zoom, text_area);
 
-				// glm_vec2(VEC2(cursor_pos[0] + glm_clamp(cursor_pos[0] - text_area[0]), cursor_pos[1]), cam_target);
+				// glm_vec2(VEC2(text_cursor_pos[0] + glm_clamp(text_cursor_pos[0] - text_area[0]), text_cursor_pos[1]), cam_target);
 				// float new_zoom = text_area[0] != 0 ? text_area[0] / renderer->window_width : 1;
 
 			} else {
@@ -287,7 +287,7 @@ int main(int argc, char* argv[]) {
 
 			if(current_ticks % 1000 > 400 || cursor_blink_pause > 0) {
 				renderer_set_shader(renderer, COLOR_SHADER);
-				renderer_solid_rect(renderer, cursor_pos, VEC2(3, editor.font.line_spacing), COLOR_WHITE);
+				renderer_solid_rect(renderer, text_cursor_pos, VEC2(3, editor.font.line_spacing), COLOR_WHITE);
 				renderer_draw(renderer);
 			}
 		} 
