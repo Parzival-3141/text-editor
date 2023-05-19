@@ -1,19 +1,20 @@
-fix buffer overrun when opening/editing text files!
-
 File browser
  - file saving/loading
  - fuzzy search node by name
     - move cursor to first match, press a button to cycle between matches.
     - press enter to open node, escape to cancel
 
+Make camera context aware, zooming in/out to frame text better, and loosely following the cursor
+
 Write StringBuilder library to avoid C strings
  - Pointer and a length
  - Write helper functions like append, concat, resize, etc.
 
-Figure out why fs.zig hangs when compiling cImports using -Doptimize=ReleaseFast
+Figure out why fs.zig hangs when compiling/analyzing cImports using -Doptimize=ReleaseFast
 
 Cache inputs at start of frame, so I can query at any point in the code afterward
 e.g. if (Input_get_key_down('K')) {...}
+
 
 Clean up text rendering code
  - group things neat and consisely

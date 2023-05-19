@@ -60,4 +60,3 @@ Then just call `zig build run` in the project root.
 
 ## Known Issues
  - Builing with `-Doptimize=ReleaseFast` causes the compiler to hang while analyzing `src/fs.zig`. Not sure why, but it's most likely a compiler bug due to regression in the C backend.
- - Crashing when editing files. This is probably due to a buffer overrun caused by the Zig->C handoff in `src/fs.zig` and `Editor_OpenFile` (null terminator woes I'm sure). Will be fixed in a rewrite.

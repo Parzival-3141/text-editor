@@ -78,7 +78,7 @@ int main(int argc, char* argv[]) {
 	FS_init(".");
 	FS_read_directory();
 
-	// Initialize with 0 so text renderer doesn't crash
+	// Initialize TextArray with 0
 	LIST_APPEND(TextArray, &editor.data, '\0');
 	Editor_RecalculateLines(&editor);
 
