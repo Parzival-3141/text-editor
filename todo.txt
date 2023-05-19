@@ -2,8 +2,11 @@ fix buffer overrun when opening/editing text files!
 
 File browser
  - file saving/loading
+ - fuzzy search node by name
+    - move cursor to first match, press a button to cycle between matches.
+    - press enter to open node, escape to cancel
 
-Write StringBuilder library
+Write StringBuilder library to avoid C strings
  - Pointer and a length
  - Write helper functions like append, concat, resize, etc.
 
@@ -22,5 +25,6 @@ Utilize screenspace coords and GL projection to cull geometry
  - After projection GL will handle any triangles that are partially offscreen, and cull ones that 
 	arent visible entirely.
 
-
-
+CLI
+ - open file/directory at a given path
+ - start a new buffer if no path argument is given

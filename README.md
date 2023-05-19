@@ -1,6 +1,14 @@
 # Experimental Text Editor (WIP)
+This project is what happens when you ask, *"What if my text editor had a camera?"*.
 
+![Quick Demo](text-editor-demo.webm.mp4)
 
+## Features
+ - Basic text editing
+ - Camera that smoothly follows the cursor
+ - File Browser that displays directories in 2D space
+
+**Note:** I'm still in the exploratory phase of development right now, so the code is pretty messy. The project will definitely be rewritten in the future (probably in Zig!)
 
 ## Building
 You'll need the self-hosted Zig compiler.
