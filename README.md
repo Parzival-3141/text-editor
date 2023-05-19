@@ -1,7 +1,7 @@
 # Experimental Text Editor (WIP)
 This project is what happens when you ask, *"What if my text editor had a camera?"*.
 
-[text-editor-demo.webm](https://github.com/Parzival-3141/text-editor/assets/29632054/3ecd6ae9-8374-4e35-91cb-2a00d3a0b2ba)
+[text-editor-demo2.webm](https://github.com/Parzival-3141/text-editor/assets/29632054/2d0a2013-ffc9-49fb-8ca2-6afafa3ca575)
 
 ## Features
  - Basic text editing
