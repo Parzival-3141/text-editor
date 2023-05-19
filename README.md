@@ -36,8 +36,6 @@ Then just call `zig build run` in the project root.
 | Arrow Keys | Moves the cursor |
 | Escape | Goes up a directory |
 | Enter | Opens the directory or file under the cursor |
-| Ctrl+ScrollWheel | Zoom in/out |
-| Ctrl+0 | Reset zoom | 
 
 ### Text Editing
 | Input | Action |
