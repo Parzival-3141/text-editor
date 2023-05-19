@@ -263,7 +263,7 @@ int main(int argc, char* argv[]) {
 					renderer_image_rect(renderer, *node_pos, VEC2(100, 100), nodes[i].type == file ? file_color : dir_color, VEC2(0, 0), VEC2(1, 1));
 					renderer_draw(renderer);
 					
-					text_draw(&editor.font, renderer, nodes[i].name, VEC2((*node_pos)[0], (*node_pos)[1] - 25), 0.75, COLOR_WHITE);
+					text_draw(&editor.font, renderer, nodes[i].name, strlen(nodes[i].name), VEC2((*node_pos)[0], (*node_pos)[1] - 25), 0.75, COLOR_WHITE);
 				}
 
 				glBindTexture(GL_TEXTURE_2D, 0); // unbind texture
@@ -279,7 +279,7 @@ int main(int argc, char* argv[]) {
 		if(editor.editing_text) {
 			Editor_RenderTextBox(&editor, renderer, editor.world_cursor);
 
-			text_draw(&editor.font, renderer, editor.data.items, editor.world_cursor, 1, COLOR_WHITE);
+			text_draw(&editor.font, renderer, editor.data.items, editor.data.count, editor.world_cursor, 1, COLOR_WHITE);
 
 			if(current_ticks % 1000 > 400 && cursor_blink_pause > 0) {
 				cursor_blink_pause -= dt;

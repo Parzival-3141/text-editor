@@ -2,14 +2,12 @@
 #include "common.h"
 
 // @Todo: figure out how to architect the text rendering better
-void text_draw(Font* f, Renderer* r, const char* text, vec2 pos, float scale, vec4 color) {
+void text_draw(Font* f, Renderer* r, const char* text, size_t length, vec2 pos, float scale, vec4 color) {
 	vec2 glyph_pos;
 	vec2 pen_pos = {0};
 
 	GlyphInfo* gi;
-
-	int len = strlen(text);
-	for (int i = 0; i < len; ++i)
+	for (size_t i = 0; i < length; ++i)
 	{
 		gi = &f->glyphs[(int)text[i]];
 
