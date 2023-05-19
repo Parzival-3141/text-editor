@@ -55,6 +55,7 @@ Then just call `zig build run` in the project root.
  - [Freetype](https://github.com/hexops/freetype)
  - [glad](https://github.com/Dav1dde/glad)
  - [cglm](https://github.com/recp/cglm)
+ - [stb](https://github.com/nothings/stb)
  - Icons - https://fonts.google.com/icons
  - [Hack font](https://github.com/source-foundry/Hack)
 
