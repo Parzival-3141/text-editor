@@ -7,6 +7,7 @@ This project is what happens when you ask, *"What if my text editor had a camera
  - Basic text editing
  - Camera that smoothly follows the cursor
  - File Browser that displays directories in 2D space
+ - [SDF text rendering](https://steamcdn-a.akamaihd.net/apps/valve/2007/SIGGRAPH2007_AlphaTestedMagnification.pdf)
 
 **Note:** I'm still in the exploratory phase of development right now, so the code is pretty messy. The project will definitely be rewritten in the future (probably in Zig!)
 
@@ -45,8 +46,14 @@ Then just call `zig build run` in the project root.
 | Home | Move cursor to line start |
 | End | Move cursor to line end |
 
-## Credits
-
+## Built With
+*Dependencies are included in the repo and are built from source, so you shouldn't have any issues.*
+ - [SDL2](https://github.com/libsdl-org/SDL)
+ - [Freetype](https://github.com/hexops/freetype)
+ - [glad](https://github.com/Dav1dde/glad)
+ - [cglm](https://github.com/recp/cglm)
+ - Icons - https://fonts.google.com/icons
+ - [Hack font](https://github.com/source-foundry/Hack)
 
 ## Known Issues
  - Builing with `-Doptimize=ReleaseFast` causes the compiler to hang while analyzing `src/fs.zig`. Not sure why, but it's most likely a compiler bug due to regression in the C backend.
