@@ -1,3 +1,10 @@
+// The goal of this code is to abstract filesystem access.
+// The C stdlib doesn't have a nice platform independent implementation, throwing
+// a wrench in things. Zig comes in clutch with it's robust C interop, allowing
+// me to write a small wrapper over it's own *platform independent* implementation!
+
+//! Exposes a list of nodes that contain file/folder info for the current directory.
+//! Can read files into memory for editing.
 const std = @import("std");
 const fs = std.fs;
 const log = std.log;
@@ -8,12 +15,6 @@ const ArrayList = std.ArrayList;
 const c = @cImport({
     @cInclude("cglm/cglm.h");
 });
-
-// Abstract file system access
-// Expose a list of nodes that contain file/folder info
-// for the current directory.
-
-// In C iterate over the list and draw them.
 
 const FS_NodeType = enum(c_int) {
     file,

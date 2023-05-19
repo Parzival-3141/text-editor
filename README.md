@@ -9,9 +9,14 @@ This project is what happens when you ask, *"What if my text editor had a camera
  - File Browser that displays directories in 2D space
  - [SDF text rendering](https://steamcdn-a.akamaihd.net/apps/valve/2007/SIGGRAPH2007_AlphaTestedMagnification.pdf)
 
-**Note:** I'm still in the exploratory phase of development right now, so the code is pretty messy. The project will definitely be rewritten in the future (probably in Zig!)
+Though this project is mainly in C, it uses Zig as it's compiler/build system. I really love this feature of Zig, and it allows doing some neat stuff *(check out the [filesystem](src/fs.zig) [code](src/fs.h))*!
+
+**Note:** I'm still in the exploratory phase of development right now, so the code is pretty messy. The project will definitely be rewritten in the future (probably in Zig!).
 
 ## Building
+```sh
+git clone --recursive https://github.com/Parzival-3141/text-editor.git
+```
 You'll need the self-hosted Zig compiler.
 ```sh
 zig version
